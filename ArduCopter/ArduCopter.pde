@@ -1686,9 +1686,16 @@ void update_roll_pitch_mode(void)
         control_roll            = g.rc_1.control_in;
         control_pitch           = g.rc_2.control_in;
 
-        // mix in user control with optical flow
-        get_stabilize_roll(get_of_roll(control_roll));
-        get_stabilize_pitch(get_of_pitch(control_pitch));
+        
+        if(!is_RPY){
+            // mix in user control with optical flow
+            get_stabilize_roll(get_of_roll(control_roll));
+            get_stabilize_pitch(get_of_pitch(control_pitch));
+        }
+        else{//If the GCS has sent RPY values
+            get_stabilize_roll(get_of_roll(0)+cmd_roll);
+            get_stabilize_pitch(get_of_pitch(0)+cmd_pitch);
+        }
         break;
 
     // THOR
