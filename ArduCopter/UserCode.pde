@@ -40,5 +40,6 @@ void userhook_SlowLoop()
 void userhook_SuperSlowLoop()
 {
     // put your 1Hz code here
+    set_mode(OF_LOITER);
 }
 #endif
