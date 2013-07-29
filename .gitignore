@@ -56,3 +56,5 @@ Make.dep
 *.px4
 .directory
 .settings/
+*.orig
+*.*~

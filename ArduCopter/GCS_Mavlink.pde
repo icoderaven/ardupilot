@@ -1940,11 +1940,11 @@ mission_failed:
             gcs_send_text_P(SEVERITY_LOW, PSTR("SetRPYT: Thrust out of range!"));
             break;
         }
-        cmd_thrust = packet.thrust;
-        gcs_send_text_fmt( PSTR("Received RPYT %d %d %d %d"), cmd_roll, cmd_pitch, cmd_yaw, cmd_thrust);
-        gcs_send_text_fmt( PSTR("and current output is %d %d %d %d"), g.rc_1.servo_out, g.rc_2.servo_out, g.rc_3.radio_out, g.rc_4.servo_out);
+        cmd_thrust = packet.thrust*1000;
+        //gcs_send_text_fmt( PSTR("Received RPYT %d %d %d %d"), cmd_roll, cmd_pitch, cmd_yaw, cmd_thrust);
+        //gcs_send_text_fmt( PSTR("and current output is %d %d %d %d"), g.rc_1.servo_out, g.rc_2.servo_out, g.rc_3.radio_out, g.rc_4.servo_out);
         //Blinky blinky
-        digitalWrite(B_LED_PIN, !digitalRead(B_LED_PIN));
+        //(B_LED_PIN, !digitalRead(B_LED_PIN));
         last_cmd_time = millis();
         break;
     }
