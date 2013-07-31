@@ -1825,7 +1825,7 @@ bool set_throttle_mode( uint8_t new_throttle_mode )
             cliSerial->printf_P(PSTR("Unsupported throttle mode: %d!!"),new_throttle_mode);
             break;
     }
-
+    
     // update the throttle mode
     if( throttle_initialised ) {
         throttle_mode = new_throttle_mode;

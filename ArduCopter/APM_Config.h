@@ -35,3 +35,8 @@
 
 //Force enabling optflow
 #define OPTFLOW ENABLED
+
+//Force disabling GPS failsafe
+# define FS_GPS DISABLED
+//Force disabling GCS failsafe
+# define FS_GCS DISABLED
