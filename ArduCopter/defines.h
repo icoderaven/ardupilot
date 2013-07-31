@@ -44,8 +44,9 @@
 #define SONAR_SOURCE_ADC 1
 #define SONAR_SOURCE_ANALOG_PIN 2
 
-// Ch7 and Ch8 aux switch control
-#define AUX_SWITCH_PWM_TRIGGER  1800        // pwm value above which the ch7 or ch8 option will be invoked
+// Ch6, Ch7 and Ch8 aux switch control
+#define AUX_SWITCH_PWM_TRIGGER_HIGH 1800   // pwm value above which the ch7 or ch8 option will be invoked
+#define AUX_SWITCH_PWM_TRIGGER_LOW  1200   // pwm value below which the ch7 or ch8 option will be disabled
 #define CH6_PWM_TRIGGER_HIGH    1800
 #define CH6_PWM_TRIGGER_LOW     1200
 
@@ -60,9 +61,14 @@
 #define AUX_SWITCH_MULTI_MODE       8       // depending upon CH6 position Flip (if ch6 is low), RTL (if ch6 in middle) or Save WP (if ch6 is high)
 #define AUX_SWITCH_CAMERA_TRIGGER   9       // trigger camera servo or relay
 #define AUX_SWITCH_SONAR            10      // allow enabling or disabling sonar in flight which helps avoid surface tracking when you are far above the ground
-#define AUX_SWITCH_UNUSED_RFU       11      // unused reserved for future use
+#define AUX_SWITCH_FENCE            11      // allow enabling or disabling fence in flight
 #define AUX_SWITCH_RESETTOARMEDYAW  12      // changes yaw to be same as when quad was armed
+#define AUX_SWITCH_SUPERSIMPLE_MODE 13      // change to simple mode in middle, super simple at top
 
+// values used by the ap.ch7_opt and ap.ch8_opt flags
+#define AUX_SWITCH_LOW              0       // indicates auxiliar switch is in the low position (pwm <1200)
+#define AUX_SWITCH_MIDDLE           1       // indicates auxiliar switch is in the middle position (pwm >1200, <1800)
+#define AUX_SWITCH_HIGH             2       // indicates auxiliar switch is in the high position (pwm >1800)
 
 // Frame types
 #define QUAD_FRAME 0
@@ -185,7 +191,7 @@
 // Yaw behaviours during missions - possible values for WP_YAW_BEHAVIOR parameter
 #define WP_YAW_BEHAVIOR_NONE                          0   // auto pilot will never control yaw during missions or rtl (except for DO_CONDITIONAL_YAW command received)
 #define WP_YAW_BEHAVIOR_LOOK_AT_NEXT_WP               1   // auto pilot will face next waypoint or home during rtl
-#define WP_YAW_BEHAVIOR_LOOK_AT_NEXT_WP_EXCEPT_RTL    2   // auto pilot will face next waypoint except when doing RTL at which time it will stay in it's last
+#define WP_YAW_BEHAVIOR_LOOK_AT_NEXT_WP_EXCEPT_RTL    2   // auto pilot will face next waypoint except when doing RTL at which time it will stay in it's last 
 #define WP_YAW_BEHAVIOR_LOOK_AHEAD                    3   // auto pilot will look ahead during missions and rtl (primarily meant for traditional helicotpers)
 
 // TOY mixing options
@@ -307,6 +313,7 @@ enum ap_message {
 #define DATA_AUTO_ARMED                 15
 #define DATA_TAKEOFF                    16
 #define DATA_LAND_COMPLETE              18
+#define DATA_NOT_LANDED                 28
 #define DATA_LOST_GPS                   19
 #define DATA_BEGIN_FLIP                 21
 #define DATA_END_FLIP                   22
@@ -314,6 +321,7 @@ enum ap_message {
 #define DATA_SET_HOME                   25
 #define DATA_SET_SIMPLE_ON              26
 #define DATA_SET_SIMPLE_OFF             27
+#define DATA_SET_SUPERSIMPLE_ON         28
 
 // battery monitoring macros
 #define BATTERY_VOLTAGE(x) (x->voltage_average()*g.volt_div_ratio)
@@ -416,6 +424,7 @@ enum ap_message {
 #define ERROR_SUBSYSTEM_FAILSAFE_GPS        7
 #define ERROR_SUBSYSTEM_FAILSAFE_GCS        8
 #define ERROR_SUBSYSTEM_FAILSAFE_FENCE      9
+#define ERROR_SUBSYSTEM_FLGHT_MODE          10
 // general error codes
 #define ERROR_CODE_ERROR_RESOLVED           0
 #define ERROR_CODE_FAILED_TO_INITIALISE     1
