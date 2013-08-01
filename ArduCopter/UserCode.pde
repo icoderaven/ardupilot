@@ -65,6 +65,6 @@ void userhook_SlowLoop()
 void userhook_SuperSlowLoop()
 {
     // put your 1Hz code here
-    gcs_send_text_fmt( PSTR("Throttle Control in %d :::"), g.rc_3.control_in);
+    //gcs_send_text_fmt( PSTR("Throttle Control in %d :::"), g.rc_3.control_in);
 }
 #endif
