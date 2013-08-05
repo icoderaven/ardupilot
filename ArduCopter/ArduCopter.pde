@@ -1736,8 +1736,8 @@ void update_roll_pitch_mode(void)
             get_stabilize_pitch(get_of_pitch(control_pitch));
         }
         else{//If the GCS has sent RPY values
-            get_stabilize_roll(get_of_roll(0)+cmd_roll);
-            get_stabilize_pitch(get_of_pitch(0)+cmd_pitch);
+            get_stabilize_roll(cmd_roll);
+            get_stabilize_pitch(cmd_pitch);
             //set_throttle_out(cmd_throttle, false);
         }
         break;
