@@ -1931,6 +1931,8 @@ mission_failed:
         //Blinky blinky
         //(B_LED_PIN, !digitalRead(B_LED_PIN));
         last_cmd_time = millis();
+        //Also use this command as an indicator of the last time we receive a message from the GCS
+        last_heartbeat_ms = last_cmd_time;
         break;
     }
 

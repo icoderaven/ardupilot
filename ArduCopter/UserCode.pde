@@ -57,7 +57,7 @@ void userhook_SlowLoop()
        cmd_roll = 0;
        cmd_pitch = 0;
        cmd_yaw = 0;
-       gcs_send_text_fmt( PSTR("Resetting command rpy, lct = %d, ct = %d"), last_cmd_time, millis());
+       //gcs_send_text_fmt( PSTR("Resetting command rpy, lct = %d, ct = %d"), last_cmd_time, millis());
        is_RPY = false;
     }
 }
