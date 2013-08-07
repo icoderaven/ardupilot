@@ -51,13 +51,13 @@ void userhook_SlowLoop()
        is_RPY = false;
        set_mode(STABILIZE);
     }*/
-     if( millis() - last_cmd_time > 300 && is_RPY) //i.e. if we haven't heard in 1 seconds
+     if( millis() - last_cmd_time > 400 && is_RPY) //i.e. if we haven't heard in 1 seconds
     {
        //Clear the commanded roll pitch and yaw
        cmd_roll = 0;
        cmd_pitch = 0;
        cmd_yaw = 0;
-       gcs_send_text_fmt( PSTR("Resetting command rpy"));
+       gcs_send_text_fmt( PSTR("Resetting command rpy, lct = %d, ct = %d"), last_cmd_time, millis());
        is_RPY = false;
     }
 }

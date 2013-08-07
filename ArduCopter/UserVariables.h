@@ -11,7 +11,7 @@ int     cmd_roll=0;
 int     cmd_pitch=0;
 int     cmd_yaw=0;
 int     cmd_thrust=0;
-int     last_cmd_time=0;
+uint32_t     last_cmd_time=0;
 #if WII_CAMERA == 1
 WiiCamera           ircam;
 int                 WiiRange=0;
