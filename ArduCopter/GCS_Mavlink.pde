@@ -1261,7 +1261,7 @@ void GCS_MAVLINK::handleMessage(mavlink_message_t* msg)
         // decode
         mavlink_set_mode_t packet;
         mavlink_msg_set_mode_decode(msg, &packet);
-
+        gcs_send_text_fmt( PSTR("Mode change! %d %d"), packet.base_mode, packet.custom_mode);
         if (!(packet.base_mode & MAV_MODE_FLAG_CUSTOM_MODE_ENABLED)) {
             // we ignore base_mode as there is no sane way to map
             // from that bitmap to a APM flight mode. We rely on
@@ -1900,6 +1900,39 @@ mission_failed:
         ap.rc_override_active = true;
         // a RC override message is consiered to be a 'heartbeat' from the ground station for failsafe purposes
         last_heartbeat_ms = millis();
+        gcs_send_text_fmt( PSTR("Received RC!!!"));
+        break;
+    }
+    
+    case MAVLINK_MSG_ID_SET_ROLL_PITCH_YAW_THRUST: //56
+    {
+        //Set Roll Pitch yaw as per the command provided by GCS
+        if(msg->sysid != g.sysid_my_gcs) break;                         // Only accept control from our gcs
+        mavlink_set_roll_pitch_yaw_thrust_t packet;
+        mavlink_msg_set_roll_pitch_yaw_thrust_decode(msg, &packet);
+        
+        //Obtain the roll, pitch, yaw and thrust commands
+        //R,P,Y in radians, Thrust normalized in 0..1
+        if(!is_RPY){
+            is_RPY = true;
+        }
+        cmd_roll = constrain_int32(degrees(packet.roll)*100, -3000, 3000);
+        cmd_pitch = constrain_int32(degrees(packet.pitch)*100, -3000, 3000);
+        cmd_yaw = constrain_int32(degrees(packet.yaw)*100, -3000, 3000);
+        //Perform sanity check
+        if(packet.thrust <0.0 || packet.thrust >1.0)
+        {
+            gcs_send_text_P(SEVERITY_LOW, PSTR("SetRPYT: Thrust out of range!"));
+            break;
+        }
+        cmd_thrust = packet.thrust*1000;
+        //gcs_send_text_fmt( PSTR("Received RPYT %d %d %d %d"), cmd_roll, cmd_pitch, cmd_yaw, cmd_thrust);
+        //gcs_send_text_fmt( PSTR("and current output is %d %d %d %d"), g.rc_1.servo_out, g.rc_2.servo_out, g.rc_3.radio_out, g.rc_4.servo_out);
+        //Blinky blinky
+        //(B_LED_PIN, !digitalRead(B_LED_PIN));
+        last_cmd_time = millis();
+        //Also use this command as an indicator of the last time we receive a message from the GCS
+        last_heartbeat_ms = last_cmd_time;
         break;
     }
 

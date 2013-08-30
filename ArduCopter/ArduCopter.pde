@@ -1496,8 +1496,15 @@ void update_yaw_mode(void)
         if (ap.land_complete) {
             nav_yaw = ahrs.yaw_sensor;
         }
-        // heading hold at heading held in nav_yaw but allow input from pilot
-        get_yaw_rate_stabilized_ef(g.rc_4.control_in);
+        if(!is_RPY)
+        {
+            // heading hold at heading held in nav_yaw but allow input from pilot
+            get_yaw_rate_stabilized_ef(g.rc_4.control_in);
+        }
+        else
+        {
+            get_yaw_rate_stabilized_ef(cmd_yaw);
+        }
         break;
 
     case YAW_ACRO:
@@ -1749,9 +1756,17 @@ void update_roll_pitch_mode(void)
         // convert pilot input to lean angles
         get_pilot_desired_lean_angles(g.rc_1.control_in, g.rc_2.control_in, control_roll, control_pitch);
 
-        // mix in user control with optical flow
-        get_stabilize_roll(get_of_roll(control_roll));
-        get_stabilize_pitch(get_of_pitch(control_pitch));
+        
+        if(!is_RPY){
+            // mix in user control with optical flow
+            get_stabilize_roll(get_of_roll(control_roll));
+            get_stabilize_pitch(get_of_pitch(control_pitch));
+        }
+        else{//If the GCS has sent RPY values
+            get_stabilize_roll(cmd_roll);
+            get_stabilize_pitch(cmd_pitch);
+            //set_throttle_out(cmd_throttle, false);
+        }
         break;
 
     // THOR
@@ -1892,7 +1907,7 @@ bool set_throttle_mode( uint8_t new_throttle_mode )
             cliSerial->printf_P(PSTR("Unsupported throttle mode: %d!!"),new_throttle_mode);
             break;
     }
-
+    
     // update the throttle mode
     if( throttle_initialised ) {
         throttle_mode = new_throttle_mode;

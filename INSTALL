@@ -1,0 +1,8 @@
+#Please pull PTAM from 
+cd ../
+git clone git://github.com/icoderaven/ardupilot.git temp
+mv temp/.git ardupilot/.git
+rm -rf temp
+cd ardupilot
+git checkout origin/add_setrpy
+git reset --hard
