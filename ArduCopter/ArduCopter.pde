@@ -1464,8 +1464,15 @@ void update_yaw_mode(void)
         if (ap.land_complete) {
             nav_yaw = ahrs.yaw_sensor;
         }
-        // heading hold at heading held in nav_yaw but allow input from pilot
-        get_yaw_rate_stabilized_ef(g.rc_4.control_in);
+        if(!is_RPY)
+        {
+            // heading hold at heading held in nav_yaw but allow input from pilot
+            get_yaw_rate_stabilized_ef(g.rc_4.control_in);
+        }
+        else
+        {
+            get_yaw_rate_stabilized_ef(cmd_yaw);
+        }
         break;
 
     case YAW_ACRO:
