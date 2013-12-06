@@ -4,6 +4,9 @@
 #
 SYSTYPE			:=	$(shell uname)
 
+GIT_VERSION := $(shell git rev-parse HEAD | cut -c1-8)
+EXTRAFLAGS += -DGIT_VERSION="\"$(GIT_VERSION)\""
+
 # force LANG to C so awk works sanely on MacOS
 export LANG=C
 
@@ -111,6 +114,10 @@ ifneq ($(findstring sitl, $(MAKECMDGOALS)),)
 HAL_BOARD = HAL_BOARD_AVR_SITL
 endif
 
+ifneq ($(findstring linux, $(MAKECMDGOALS)),)
+HAL_BOARD = HAL_BOARD_LINUX
+endif
+
 ifneq ($(findstring vrbrain, $(MAKECMDGOALS)),)
 HAL_BOARD = HAL_BOARD_VRBRAIN
 endif
@@ -121,6 +128,10 @@ endif
 
 ifneq ($(findstring apm2, $(MAKECMDGOALS)),)
 HAL_BOARD = HAL_BOARD_APM2
+endif
+
+ifneq ($(findstring flymaple, $(MAKECMDGOALS)),)
+HAL_BOARD = HAL_BOARD_FLYMAPLE
 endif
 
 # default to APM2

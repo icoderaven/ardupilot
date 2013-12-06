@@ -23,6 +23,27 @@ static int32_t read_barometer(void)
     return altitude_filter.apply(barometer.get_altitude() * 100.0);
 }
 
+static void init_sonar(void)
+{
+#if CONFIG_HAL_BOARD == HAL_BOARD_APM1
+    sonar.Init(&apm1_adc);
+#else
+    sonar.Init(NULL);
+#endif
+}
+
+// read the sonars
+static void read_sonars(void)
+{
+    if (!sonar.enabled()) {
+        // this makes it possible to disable sonar at runtime
+        return;
+    }
+
+    if (g.log_bitmask & MASK_LOG_SONAR)
+        Log_Write_Sonar();
+}
+
 /*
   ask airspeed sensor for a new value
  */
@@ -40,40 +61,13 @@ static void zero_airspeed(void)
     gcs_send_text_P(SEVERITY_LOW,PSTR("zero airspeed calibrated"));
 }
 
+// read_battery - reads battery voltage and current and invokes failsafe
+// should be called at 10hz
 static void read_battery(void)
 {
-    if(g.battery_monitoring == 0) {
-        battery.voltage = 0;
-        return;
-    }
+    battery.read();
 
-    if(g.battery_monitoring == 3 || g.battery_monitoring == 4) {
-        // this copes with changing the pin at runtime
-        batt_volt_pin->set_pin(g.battery_volt_pin);
-        battery.voltage = BATTERY_VOLTAGE(batt_volt_pin);
-    }
-
-    if (g.battery_monitoring == 4) {
-        uint32_t tnow = hal.scheduler->millis();
-        float dt = tnow - battery.last_time_ms;
-        // this copes with changing the pin at runtime
-        batt_curr_pin->set_pin(g.battery_curr_pin);
-        battery.current_amps = CURRENT_AMPS(batt_curr_pin);
-        if (battery.last_time_ms != 0 && dt < 2000) {
-            // .0002778 is 1/3600 (conversion to hours)
-            battery.current_total_mah += battery.current_amps * dt * 0.0002778f; 
-        }
-        battery.last_time_ms = tnow;
-    }
-
-    if (battery.voltage != 0 && 
-        g.fs_batt_voltage > 0 && 
-        battery.voltage < g.fs_batt_voltage) {
-        low_battery_event();
-    }
-    if (g.battery_monitoring == 4 && 
-        g.fs_batt_mah > 0 && 
-        g.pack_capacity - battery.current_total_mah < g.fs_batt_mah) {
+    if (!usb_connected && battery.exhausted(g.fs_batt_voltage, g.fs_batt_mah)) {
         low_battery_event();
     }
 }
@@ -98,3 +92,4 @@ static int32_t adjusted_altitude_cm(void)
 {
     return current_loc.alt - (g.alt_offset*100);
 }
+

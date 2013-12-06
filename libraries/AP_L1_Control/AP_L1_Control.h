@@ -50,6 +50,13 @@ public:
 	void update_level_flight(void);
 	bool reached_loiter_target(void);
 
+    // set the default NAVL1_PERIOD
+    void set_default_period(float period) {
+        if (!_L1_period.load()) {
+            _L1_period.set(period);
+        }
+    }
+
 	// this supports the NAVl1_* user settable parameters
     static const struct AP_Param::GroupInfo var_info[];
 
@@ -83,10 +90,15 @@ private:
 	AP_Float _L1_period;
 	// L1 tracking loop damping ratio
 	AP_Float _L1_damping;
-	
-	//Calculate the maximum of two floating point numbers
-	float _maxf(const float &num1, const float &num2) const;
 
+    // previous value of cross-track velocity
+    float _last_Nu;
+
+    // direction of last xtrack velocity - true positive
+    bool _xtrackVelPos;
+
+    // prevent indecision in waypoint tracking
+    void _prevent_indecision(float &Nu);
 };
 
 

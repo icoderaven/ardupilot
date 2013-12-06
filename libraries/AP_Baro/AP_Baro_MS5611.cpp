@@ -22,7 +22,7 @@
  *       Chip Select pin: Analog2 (provisional until Jordi defines the pin)!!
  *
  *       Variables:
- *               Temp : Calculated temperature (in Celsius degrees * 100)
+ *               Temp : Calculated temperature (in Celsius degrees)
  *               Press : Calculated pressure   (in mbar units * 100)
  *
  *
@@ -88,6 +88,10 @@ void AP_Baro_MS5611_SPI::init()
         return; /* never reached */
         
     }
+
+    // now that we have initialised, we set the SPI bus speed to high
+    // (8MHz on APM2)
+    _spi->set_bus_speed(AP_HAL::SPIDeviceDriver::SPI_SPEED_HIGH);
 }
 
 uint16_t AP_Baro_MS5611_SPI::read_16bits(uint8_t reg)
@@ -264,7 +268,7 @@ bool AP_Baro_MS5611::init()
     _d1_count = 0;
     _d2_count = 0;
 
-    hal.scheduler->register_timer_process( AP_Baro_MS5611::_update );
+    hal.scheduler->register_timer_process( AP_HAL_MEMBERPROC(&AP_Baro_MS5611::_update));
     _serial->sem_give();
 
     // wait for at least one value to be read
@@ -287,12 +291,11 @@ bool AP_Baro_MS5611::init()
 // Read the sensor. This is a state machine
 // We read one time Temperature (state=1) and then 4 times Pressure (states 2-5)
 // temperature does not change so quickly...
-void AP_Baro_MS5611::_update(uint32_t tnow)
+void AP_Baro_MS5611::_update(void)
 {
+    uint32_t tnow = hal.scheduler->micros();
     // Throttle read rate to 100hz maximum.
-    // note we use 9500us here not 10000us
-    // the read rate will end up at exactly 100hz because the Periodic Timer fires at 1khz
-    if (tnow - _timer < 9500) {
+    if (tnow - _timer < 10000) {
         return;
     }
 
@@ -404,7 +407,7 @@ void AP_Baro_MS5611::_calculate()
     }
 
     P = (D1*SENS/2097152 - OFF)/32768;
-    Temp = TEMP + 2000;
+    Temp = (TEMP + 2000) * 0.01f;
     Press = P;
 }
 
@@ -415,16 +418,7 @@ float AP_Baro_MS5611::get_pressure()
 
 float AP_Baro_MS5611::get_temperature()
 {
-    // callers want the temperature in 0.1C units
-    return Temp/10;
+    // temperature in degrees C units
+    return Temp;
 }
-
-int32_t AP_Baro_MS5611::get_raw_pressure() {
-    return _raw_press;
-}
-
-int32_t AP_Baro_MS5611::get_raw_temp() {
-    return _raw_temp;
-}
-
 

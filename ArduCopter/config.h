@@ -57,7 +57,6 @@
 
 #if CONFIG_HAL_BOARD == HAL_BOARD_APM2
  # define CONFIG_IMU_TYPE   CONFIG_IMU_MPU6000
- # define CONFIG_PUSHBUTTON DISABLED
  # define CONFIG_SONAR_SOURCE SONAR_SOURCE_ANALOG_PIN
  # define MAGNETOMETER ENABLED
  # ifdef APM2_BETA_HARDWARE
@@ -68,23 +67,27 @@
  # endif
 #elif CONFIG_HAL_BOARD == HAL_BOARD_AVR_SITL
  # define CONFIG_IMU_TYPE   CONFIG_IMU_SITL
- # define CONFIG_PUSHBUTTON DISABLED
  # define CONFIG_SONAR_SOURCE SONAR_SOURCE_ANALOG_PIN
  # define MAGNETOMETER ENABLED
 #elif CONFIG_HAL_BOARD == HAL_BOARD_PX4
  # define CONFIG_IMU_TYPE   CONFIG_IMU_PX4
  # define CONFIG_BARO       AP_BARO_PX4
- # define CONFIG_PUSHBUTTON DISABLED
  # define CONFIG_SONAR_SOURCE SONAR_SOURCE_ANALOG_PIN
  # define MAGNETOMETER ENABLED
-#elif CONFIG_HAL_BOARD == HAL_BOARD_SMACCM
- # define CONFIG_IMU_TYPE   CONFIG_IMU_MPU6000
- # define CONFIG_BARO       AP_BARO_MS5611
- # define CONFIG_MS5611_SERIAL AP_BARO_MS5611_I2C
+#elif CONFIG_HAL_BOARD == HAL_BOARD_FLYMAPLE
+ # define CONFIG_IMU_TYPE CONFIG_IMU_FLYMAPLE
+ # define CONFIG_BARO AP_BARO_BMP085
+ # define CONFIG_COMPASS  AP_COMPASS_HMC5843
  # define CONFIG_ADC        DISABLED
- # define CONFIG_PUSHBUTTON DISABLED
- # define CONFIG_SONAR_SOURCE SONAR_SOURCE_ANALOG_PIN
  # define MAGNETOMETER ENABLED
+ # define CONFIG_SONAR_SOURCE SONAR_SOURCE_ANALOG_PIN
+#elif CONFIG_HAL_BOARD == HAL_BOARD_LINUX
+ # define CONFIG_IMU_TYPE CONFIG_IMU_L3G4200D
+ # define CONFIG_BARO AP_BARO_BMP085
+ # define CONFIG_COMPASS  AP_COMPASS_HMC5843
+ # define CONFIG_ADC        DISABLED
+ # define MAGNETOMETER ENABLED
+ # define CONFIG_SONAR_SOURCE SONAR_SOURCE_ANALOG_PIN
 #endif
 
 //////////////////////////////////////////////////////////////////////////////
@@ -96,37 +99,40 @@
 #ifndef FRAME_ORIENTATION
  # define FRAME_ORIENTATION      X_FRAME
 #endif
-#ifndef TOY_EDF
- # define TOY_EDF        DISABLED
-#endif
-#ifndef TOY_MIXER
- # define TOY_MIXER      TOY_LINEAR_MIXER
-#endif
 
 /////////////////////////////////////////////////////////////////////////////////
 // TradHeli defaults
 #if FRAME_CONFIG == HELI_FRAME
-  # define RC_FAST_SPEED 				125
-  # define WP_YAW_BEHAVIOR_DEFAULT      YAW_LOOK_AT_HOME
-  # define RATE_INTEGRATOR_LEAK_RATE 	0.02f
-  # define RATE_ROLL_D    				0
-  # define RATE_PITCH_D       			0
-  # define HELI_PITCH_FF				0
-  # define HELI_ROLL_FF					0
-  # define HELI_YAW_FF					0  
-  # define STABILIZE_THROTTLE			THROTTLE_MANUAL
+  # define RC_FAST_SPEED                125
+  # define WP_YAW_BEHAVIOR_DEFAULT      WP_YAW_BEHAVIOR_LOOK_AHEAD
+  # define RATE_INTEGRATOR_LEAK_RATE    0.02f
+  # define RATE_ROLL_D                  0
+  # define RATE_PITCH_D                 0
+  # define HELI_PITCH_FF                0
+  # define HELI_ROLL_FF                 0
+  # define HELI_YAW_FF                  0  
+  # define STABILIZE_THR                THROTTLE_MANUAL_HELI
   # define MPU6K_FILTER                 10
+  # define HELI_STAB_COLLECTIVE_MIN_DEFAULT   0
+  # define HELI_STAB_COLLECTIVE_MAX_DEFAULT   1000
+  # define THR_MIN_DEFAULT              0
+  # ifndef HELI_CC_COMP
+    #define HELI_CC_COMP DISABLED
+  #endif
+  # ifndef HELI_PIRO_COMP
+    #define HELI_PIRO_COMP DISABLED
+  #endif
 #endif
 
 /////////////////////////////////////////////////////////////////////////////////
 // Y6 defaults
 #if FRAME_CONFIG == Y6_FRAME
-  # define RATE_ROLL_P    				0.1f
-  # define RATE_ROLL_D    				0.006f
-  # define RATE_PITCH_P    				0.1f
-  # define RATE_PITCH_D    				0.006f
-  # define RATE_YAW_P    				0.150f
-  # define RATE_YAW_I    				0.015f
+  # define RATE_ROLL_P                  0.1f
+  # define RATE_ROLL_D                  0.006f
+  # define RATE_PITCH_P                 0.1f
+  # define RATE_PITCH_D                 0.006f
+  # define RATE_YAW_P                   0.150f
+  # define RATE_YAW_I                   0.015f
 #endif
 
 
@@ -168,81 +174,13 @@
 // LED and IO Pins
 //
 #if CONFIG_HAL_BOARD == HAL_BOARD_APM1
- # define LED_ON           HIGH
- # define LED_OFF          LOW
- # define PUSHBUTTON_PIN   41
- # define USB_MUX_PIN      -1
- # define BATTERY_VOLT_PIN      0      // Battery voltage on A0
- # define BATTERY_CURR_PIN      1      // Battery current on A1
 #elif CONFIG_HAL_BOARD == HAL_BOARD_APM2
- # define LED_ON           LOW
- # define LED_OFF          HIGH
- # define PUSHBUTTON_PIN   (-1)
- # define USB_MUX_PIN      23
- # define BATTERY_VOLT_PIN      1      // Battery voltage on A1
- # define BATTERY_CURR_PIN      2      // Battery current on A2
 #elif CONFIG_HAL_BOARD == HAL_BOARD_AVR_SITL
- # define LED_ON           LOW
- # define LED_OFF          HIGH
- # define PUSHBUTTON_PIN   (-1)
- # define USB_MUX_PIN      -1
- # define BATTERY_VOLT_PIN 1      // Battery voltage on A1
- # define BATTERY_CURR_PIN 2      // Battery current on A2
 #elif CONFIG_HAL_BOARD == HAL_BOARD_PX4
+#elif CONFIG_HAL_BOARD == HAL_BOARD_FLYMAPLE
+#elif CONFIG_HAL_BOARD == HAL_BOARD_LINUX
  # define LED_ON           LOW
  # define LED_OFF          HIGH
- # define PUSHBUTTON_PIN   (-1)
- # define USB_MUX_PIN      -1
- # define BATTERY_VOLT_PIN -1
- # define BATTERY_CURR_PIN -1
-#elif CONFIG_HAL_BOARD == HAL_BOARD_SMACCM
-// XXX these are just copied, may not make sense
- # define LED_ON           LOW
- # define LED_OFF          HIGH
- # define PUSHBUTTON_PIN   (-1)
- # define USB_MUX_PIN      -1
- # define BATTERY_VOLT_PIN -1
- # define BATTERY_CURR_PIN -1
-#endif
-
-////////////////////////////////////////////////////////////////////////////////
-// CopterLEDs
-//
-
-#ifndef COPTER_LEDS
- #define COPTER_LEDS ENABLED
-#endif
-
-#define COPTER_LED_ON           HIGH
-#define COPTER_LED_OFF          LOW
-
-#if CONFIG_HAL_BOARD == HAL_BOARD_APM2
- #define COPTER_LED_1 AN4       // Motor or Aux LED
- #define COPTER_LED_2 AN5       // Motor LED or Beeper
- #define COPTER_LED_3 AN6       // Motor or GPS LED
- #define COPTER_LED_4 AN7       // Motor LED
- #define COPTER_LED_5 AN8       // Motor LED
- #define COPTER_LED_6 AN9       // Motor LED
- #define COPTER_LED_7 AN10      // Motor LED
- #define COPTER_LED_8 AN11      // Motor LED
-#elif CONFIG_HAL_BOARD == HAL_BOARD_APM1 || CONFIG_HAL_BOARD == HAL_BOARD_AVR_SITL || CONFIG_HAL_BOARD == HAL_BOARD_PX4 || HAL_BOARD_SMACCM
- #define COPTER_LED_1 AN8       // Motor or Aux LED
- #define COPTER_LED_2 AN9       // Motor LED
- #define COPTER_LED_3 AN10      // Motor or GPS LED
- #define COPTER_LED_4 AN11      // Motor LED
- #define COPTER_LED_5 AN12      // Motor LED
- #define COPTER_LED_6 AN13      // Motor LED
- #define COPTER_LED_7 AN14      // Motor LED
- #define COPTER_LED_8 AN15      // Motor LED
-#endif
-
-
-//////////////////////////////////////////////////////////////////////////////
-// Pushbutton & Relay
-//
-
-#ifndef CONFIG_PUSHBUTTON
- # define CONFIG_PUSHBUTTON ENABLED
 #endif
 
 //////////////////////////////////////////////////////////////////////////////
@@ -294,7 +232,7 @@
 #endif
 
 #ifndef SONAR_GAIN_DEFAULT
- # define SONAR_GAIN_DEFAULT 2.0            // gain for controlling how quickly sonar range adjusts target altitude (lower means slower reaction)
+ # define SONAR_GAIN_DEFAULT 0.8            // gain for controlling how quickly sonar range adjusts target altitude (lower means slower reaction)
 #endif
 
 #ifndef THR_SURFACE_TRACKING_VELZ_MAX
@@ -306,7 +244,7 @@
 //
 
 #ifndef CH7_OPTION
- # define CH7_OPTION            AUX_SWITCH_SAVE_WP
+ # define CH7_OPTION            AUX_SWITCH_DO_NOTHING
 #endif
 
 #ifndef CH8_OPTION
@@ -349,29 +287,23 @@
 #ifndef SERIAL0_BAUD
  # define SERIAL0_BAUD                   115200
 #endif
-#ifndef SERIAL3_BAUD
- # define SERIAL3_BAUD                    57600
+#ifndef SERIAL1_BAUD
+ # define SERIAL1_BAUD                    57600
+#endif
+#ifndef SERIAL2_BAUD
+ # define SERIAL2_BAUD                    57600
 #endif
 
 
 //////////////////////////////////////////////////////////////////////////////
 // Battery monitoring
 //
-#ifndef LOW_VOLTAGE
- # define LOW_VOLTAGE                    10.5f
-#endif
-#ifndef VOLT_DIV_RATIO
- # define VOLT_DIV_RATIO                 3.56f
+#ifndef FS_BATT_VOLTAGE_DEFAULT
+ # define FS_BATT_VOLTAGE_DEFAULT       10.5f       // default battery voltage below which failsafe will be triggered
 #endif
 
-#ifndef CURR_AMP_PER_VOLT
- # define CURR_AMP_PER_VOLT              27.32f
-#endif
-#ifndef CURR_AMPS_OFFSET
- # define CURR_AMPS_OFFSET               0.0f
-#endif
-#ifndef HIGH_DISCHARGE
- # define HIGH_DISCHARGE                 1760
+#ifndef FS_BATT_MAH_DEFAULT
+ # define FS_BATT_MAH_DEFAULT             0         // default battery capacity (in mah) below which failsafe will be triggered
 #endif
 
 #ifndef BOARD_VOLTAGE_MIN
@@ -382,15 +314,7 @@
  # define BOARD_VOLTAGE_MAX             5800        // max board voltage in milli volts for pre-arm checks
 #endif
 
-// Battery failsafe
-#ifndef FS_BATTERY
- # define FS_BATTERY              DISABLED
-#endif
-
 // GPS failsafe
-#ifndef FS_GPS
- # define FS_GPS                        ENABLED
-#endif
 #ifndef FAILSAFE_GPS_TIMEOUT_MS
  # define FAILSAFE_GPS_TIMEOUT_MS       5000    // gps failsafe triggers after 5 seconds with no GPS
 #endif
@@ -410,6 +334,11 @@
 #define FS_GCS_ENABLED_ALWAYS_RTL           1
 #define FS_GCS_ENABLED_CONTINUE_MISSION     2
 
+// pre-arm check max velocity
+#ifndef PREARM_MAX_VELOCITY_CMS
+ # define PREARM_MAX_VELOCITY_CMS           50.0f   // vehicle must be travelling under 50cm/s before arming
+#endif
+
 //////////////////////////////////////////////////////////////////////////////
 //  MAGNETOMETER
 #ifndef MAGNETOMETER
@@ -417,23 +346,31 @@
 #endif
 
 // expected magnetic field strength.  pre-arm checks will fail if 50% higher or lower than this value
-#if CONFIG_HAL_BOARD == HAL_BOARD_APM2
+#if CONFIG_HAL_BOARD == HAL_BOARD_APM1 || CONFIG_HAL_BOARD == HAL_BOARD_APM2
  #ifndef COMPASS_MAGFIELD_EXPECTED
-  # define COMPASS_MAGFIELD_EXPECTED     330        // pre arm will fail if mag field > 495 or < 165
+  # define COMPASS_MAGFIELD_EXPECTED     330        // pre arm will fail if mag field > 544 or < 115
  #endif
-#else // APM1, PX4, SITL
+#else // PX4, SITL
  #ifndef COMPASS_MAGFIELD_EXPECTED
-  #define COMPASS_MAGFIELD_EXPECTED      530        // pre arm will fail if mag field > 795 or < 265
+  #define COMPASS_MAGFIELD_EXPECTED      530        // pre arm will fail if mag field > 874 or < 185
+ #endif
+#endif
+
+// max compass offset length (i.e. sqrt(offs_x^2+offs_y^2+offs_Z^2))
+#ifndef CONFIG_ARCH_BOARD_PX4FMU_V1
+ #ifndef COMPASS_OFFSETS_MAX
+  # define COMPASS_OFFSETS_MAX          600         // PX4 onboard compass has high offsets
+ #endif
+#else   // APM1, APM2, SITL, FLYMAPLE, etc
+ #ifndef COMPASS_OFFSETS_MAX
+  # define COMPASS_OFFSETS_MAX          500
  #endif
 #endif
 
 //////////////////////////////////////////////////////////////////////////////
 //  OPTICAL_FLOW
-#if defined( __AVR_ATmega2560__ )       // determines if optical flow code is included
- #define OPTFLOW                        ENABLED
-#endif
 #ifndef OPTFLOW                         // sets global enabled/disabled flag for optflow (as seen in CLI)
- # define OPTFLOW                       DISABLED
+ # define OPTFLOW                       ENABLED
 #endif
 #ifndef OPTFLOW_ORIENTATION
  # define OPTFLOW_ORIENTATION    AP_OPTICALFLOW_ADNS3080_PINS_FORWARD
@@ -465,6 +402,12 @@
 #endif
 #ifndef OPTFLOW_IMAX
  #define OPTFLOW_IMAX 100
+#endif
+
+//////////////////////////////////////////////////////////////////////////////
+//  Auto Tuning
+#ifndef AUTOTUNE
+ # define AUTOTUNE  ENABLED
 #endif
 
 //////////////////////////////////////////////////////////////////////////////
@@ -506,22 +449,8 @@
 //////////////////////////////////////////////////////////////////////////////
 // Throttle Failsafe
 //
-// possible values for FS_THR parameter
-#define FS_THR_DISABLED                    0
-#define FS_THR_ENABLED_ALWAYS_RTL          1
-#define FS_THR_ENABLED_CONTINUE_MISSION    2
-#define FS_THR_ENABLED_ALWAYS_LAND         3
-
 #ifndef FS_THR_VALUE_DEFAULT
  # define FS_THR_VALUE_DEFAULT             975
-#endif
-
-
-#ifndef MINIMUM_THROTTLE
- # define MINIMUM_THROTTLE       130
-#endif
-#ifndef MAXIMUM_THROTTLE
- # define MAXIMUM_THROTTLE       1000
 #endif
 
 #ifndef LAND_SPEED
@@ -533,20 +462,6 @@
 #ifndef LAND_DETECTOR_TRIGGER
  # define LAND_DETECTOR_TRIGGER 50    // number of 50hz iterations with near zero climb rate and low throttle that triggers landing complete.
 #endif
-
-//////////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////////
-// STARTUP BEHAVIOUR
-//////////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////////
-
-//////////////////////////////////////////////////////////////////////////////
-// GROUND_START_DELAY
-//
-#ifndef GROUND_START_DELAY
- # define GROUND_START_DELAY             3
-#endif
-
 
 //////////////////////////////////////////////////////////////////////////////
 // CAMERA TRIGGER AND CONTROL
@@ -579,6 +494,17 @@
 
 
 // Flight mode roll, pitch, yaw, throttle and navigation definitions
+
+// Stabilize Mode
+#ifndef STABILIZE_YAW
+ # define STABILIZE_YAW           	YAW_HOLD
+#endif
+#ifndef STABILIZE_RP
+ # define STABILIZE_RP           	ROLL_PITCH_STABLE
+#endif
+#ifndef STABILIZE_THR
+ # define STABILIZE_THR           	THROTTLE_MANUAL_TILT_COMPENSATED
+#endif
 
 // Acro Mode
 #ifndef ACRO_YAW
@@ -823,6 +749,9 @@
 #ifndef DEFAULT_ANGLE_MAX
  # define DEFAULT_ANGLE_MAX         4500            // ANGLE_MAX parameters default value
 #endif
+#ifndef ANGLE_RATE_MAX
+ # define ANGLE_RATE_MAX            18000           // default maximum rotation rate in roll/pitch axis requested by angle controller used in stabilize, loiter, rtl, auto flight modes
+#endif
 #ifndef RATE_ROLL_P
  # define RATE_ROLL_P        		0.150f
 #endif
@@ -920,7 +849,7 @@
 // Autopilot rotate rate limits
 //
 #ifndef AUTO_YAW_SLEW_RATE
- # define AUTO_YAW_SLEW_RATE        60                     // degrees/sec
+ # define AUTO_YAW_SLEW_RATE    60              // degrees/sec
 #endif
 
 
@@ -928,11 +857,26 @@
 // Throttle control gains
 //
 #ifndef THROTTLE_CRUISE
- # define THROTTLE_CRUISE       450            //
+ # define THROTTLE_CRUISE       450             // default estimate of throttle required for vehicle to maintain a hover
 #endif
 
-#ifndef THR_MID
- # define THR_MID        500                            // Throttle output (0 ~ 1000) when throttle stick is in mid position
+#ifndef THR_MID_DEFAULT
+ # define THR_MID_DEFAULT       500             // Throttle output (0 ~ 1000) when throttle stick is in mid position
+#endif
+
+#ifndef THR_MIN_DEFAULT
+ # define THR_MIN_DEFAULT       130             // minimum throttle sent to the motors when armed and pilot throttle above zero
+#endif
+#ifndef THR_MAX_DEFAULT
+ # define THR_MAX_DEFAULT       1000            // maximum throttle sent to the motors
+#endif
+
+#ifndef THROTTLE_IN_DEADBAND
+# define THROTTLE_IN_DEADBAND    100            // the throttle input channel's deadband in PWM
+#endif
+
+#ifndef ALT_HOLD_TAKEOFF_JUMP
+ # define ALT_HOLD_TAKEOFF_JUMP 20              // jump in altitude target when taking off in Loiter or AltHold flight modes
 #endif
 
 #ifndef ALT_HOLD_P
@@ -964,7 +908,6 @@
 #ifndef PILOT_VELZ_MAX
  # define PILOT_VELZ_MAX    250     // maximum vertical velocity in cm/s
 #endif
-#define ACCELERATION_MAX_Z  750     // maximum veritcal acceleration in cm/s/s
 
 // max distance in cm above or below current location that will be used for the alt target when transitioning to alt-hold mode
 #ifndef ALT_HOLD_INIT_MAX_OVERSHOOT
@@ -997,74 +940,34 @@
  # define LOGGING_ENABLED                ENABLED
 #endif
 
-
-#ifndef LOG_ATTITUDE_FAST
- # define LOG_ATTITUDE_FAST             DISABLED
+#if CONFIG_HAL_BOARD == HAL_BOARD_APM1 || CONFIG_HAL_BOARD == HAL_BOARD_APM2
+ // APM1 & APM2 default logging
+ # define DEFAULT_LOG_BITMASK \
+    MASK_LOG_ATTITUDE_MED | \
+    MASK_LOG_GPS | \
+    MASK_LOG_PM | \
+    MASK_LOG_CTUN | \
+    MASK_LOG_NTUN | \
+    MASK_LOG_RCIN | \
+    MASK_LOG_CMD | \
+    MASK_LOG_CURRENT
+#else
+ // PX4, Pixhawk, FlyMaple default logging
+ # define DEFAULT_LOG_BITMASK \
+    MASK_LOG_ATTITUDE_MED | \
+    MASK_LOG_GPS | \
+    MASK_LOG_PM | \
+    MASK_LOG_CTUN | \
+    MASK_LOG_NTUN | \
+    MASK_LOG_RCIN | \
+    MASK_LOG_IMU | \
+    MASK_LOG_CMD | \
+    MASK_LOG_CURRENT | \
+    MASK_LOG_RCOUT | \
+    MASK_LOG_COMPASS | \
+    MASK_LOG_INAV | \
+    MASK_LOG_CAMERA
 #endif
-#ifndef LOG_ATTITUDE_MED
- # define LOG_ATTITUDE_MED              ENABLED
-#endif
-#ifndef LOG_GPS
- # define LOG_GPS                       ENABLED
-#endif
-#ifndef LOG_PM
- # define LOG_PM                        ENABLED
-#endif
-#ifndef LOG_CTUN
- # define LOG_CTUN                      ENABLED
-#endif
-#ifndef LOG_NTUN
- # define LOG_NTUN                      ENABLED
-#endif
-#ifndef LOG_IMU
- # define LOG_IMU                       DISABLED
-#endif
-#ifndef LOG_CMD
- # define LOG_CMD                       ENABLED
-#endif
-// current
-#ifndef LOG_CURRENT
- # define LOG_CURRENT                   ENABLED
-#endif
-// quad motor PWMs
-#ifndef LOG_MOTORS
- # define LOG_MOTORS                    DISABLED
-#endif
-// optical flow
-#ifndef LOG_OPTFLOW
- # define LOG_OPTFLOW                   DISABLED
-#endif
-#ifndef LOG_PID
- # define LOG_PID                       DISABLED
-#endif
-#ifndef LOG_COMPASS
- # define LOG_COMPASS                   DISABLED
-#endif
-#ifndef LOG_INAV
- # define LOG_INAV                      DISABLED
-#endif
-#ifndef LOG_CAMERA
- # define LOG_CAMERA                    ENABLED
-#endif
-
-// calculate the default log_bitmask
-#define LOGBIT(_s)     (LOG_ ## _s ? MASK_LOG_ ## _s : 0)
-
-#define DEFAULT_LOG_BITMASK \
-    LOGBIT(ATTITUDE_FAST)   | \
-    LOGBIT(ATTITUDE_MED)    | \
-    LOGBIT(GPS)             | \
-    LOGBIT(PM)              | \
-    LOGBIT(CTUN)            | \
-    LOGBIT(NTUN)            | \
-    LOGBIT(IMU)             | \
-    LOGBIT(CMD)             | \
-    LOGBIT(CURRENT)         | \
-    LOGBIT(MOTORS)          | \
-    LOGBIT(OPTFLOW)         | \
-    LOGBIT(PID)             | \
-    LOGBIT(COMPASS)         | \
-    LOGBIT(INAV)
 
 //////////////////////////////////////////////////////////////////////////////
 // AP_Limits Defaults
@@ -1085,14 +988,14 @@
   #  define CLI_ENABLED           ENABLED
 #endif
 
-// experimental mpu6000 DMP code
-#ifndef DMP_ENABLED
- # define DMP_ENABLED DISABLED
-#endif
-
-// experimental mpu6000 DMP code
-#ifndef SECONDARY_DMP_ENABLED
- # define SECONDARY_DMP_ENABLED DISABLED
+/*
+  build a firmware version string.
+  GIT_VERSION comes from Makefile builds
+*/
+#ifndef GIT_VERSION
+#define FIRMWARE_STRING THISFIRMWARE
+#else
+#define FIRMWARE_STRING THISFIRMWARE " (" GIT_VERSION ")"
 #endif
 
 #endif // __ARDUCOPTER_CONFIG_H__

@@ -104,7 +104,7 @@ def fly_LOITER(mavproxy, mav, num_circles=4):
 
     m = mav.recv_match(type='VFR_HUD', blocking=True)
     final_alt = m.alt
-    print("Final altitude %u\n" % final_alt)
+    print("Final altitude %u initial %u\n" % (final_alt, initial_alt))
 
     mavproxy.send('mode FBWA\n')
     wait_mode(mav, 'FBWA')
@@ -136,7 +136,7 @@ def fly_CIRCLE(mavproxy, mav, num_circles=1):
 
     m = mav.recv_match(type='VFR_HUD', blocking=True)
     final_alt = m.alt
-    print("Final altitude %u\n" % final_alt)
+    print("Final altitude %u initial %u\n" % (final_alt, initial_alt))
 
     mavproxy.send('mode FBWA\n')
     wait_mode(mav, 'FBWA')
@@ -153,6 +153,9 @@ def wait_level_flight(mavproxy, mav, accuracy=5, timeout=30):
     '''wait for level flight'''
     tstart = time.time()
     print("Waiting for level flight")
+    mavproxy.send('rc 1 1500\n')
+    mavproxy.send('rc 2 1500\n')
+    mavproxy.send('rc 4 1500\n')
     while time.time() < tstart + timeout:
         m = mav.recv_match(type='ATTITUDE', blocking=True)
         roll = math.degrees(m.roll)
@@ -196,10 +199,13 @@ def axial_left_roll(mavproxy, mav, count=1):
         print("Starting roll")
         mavproxy.send('rc 1 1000\n')
         if not wait_roll(mav, -150, accuracy=90):
+            mavproxy.send('rc 1 1500\n')
             return False
         if not wait_roll(mav, 150, accuracy=90):
+            mavproxy.send('rc 1 1500\n')
             return False
         if not wait_roll(mav, 0, accuracy=90):
+            mavproxy.send('rc 1 1500\n')
             return False
         count -= 1
 
@@ -369,7 +375,7 @@ def test_FBWB(mavproxy, mav, count=1, mode='FBWB'):
 
     m = mav.recv_match(type='VFR_HUD', blocking=True)
     final_alt = m.alt
-    print("Final altitude %u\n" % final_alt)
+    print("Final altitude %u initial %u\n" % (final_alt, initial_alt))
 
     # back to FBWA
     mavproxy.send('mode FBWA\n')

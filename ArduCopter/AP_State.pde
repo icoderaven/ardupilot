@@ -27,32 +27,34 @@ void set_auto_armed(bool b)
 }
 
 // ---------------------------------------------
-void set_simple_mode(uint8_t t)
+void set_simple_mode(uint8_t b)
 {
-    if(ap.simple_mode != t){
-        if(t == 0){
+    if(ap.simple_mode != b){
+        if(b == 0){
             Log_Write_Event(DATA_SET_SIMPLE_OFF);
-        }else if(t == 1){
+        }else if(b == 1){
             Log_Write_Event(DATA_SET_SIMPLE_ON);
         }else{
+            // initialise super simple heading
+            update_super_simple_bearing(true);
             Log_Write_Event(DATA_SET_SUPERSIMPLE_ON);
         }
-        ap.simple_mode = t;
+        ap.simple_mode = b;
     }
 }
 
 // ---------------------------------------------
-static void set_failsafe_radio(bool mode)
+static void set_failsafe_radio(bool b)
 {
     // only act on changes
     // -------------------
-    if(ap.failsafe_radio != mode) {
+    if(failsafe.radio != b) {
 
         // store the value so we don't trip the gate twice
         // -----------------------------------------------
-        ap.failsafe_radio = mode;
+        failsafe.radio = b;
 
-        if (ap.failsafe_radio == false) {
+        if (failsafe.radio == false) {
             // We've regained radio contact
             // ----------------------------
             failsafe_radio_off_event();
@@ -61,27 +63,34 @@ static void set_failsafe_radio(bool mode)
             // ------------------------
             failsafe_radio_on_event();
         }
+
+        // update AP_Notify
+        AP_Notify::flags.failsafe_radio = b;
     }
 }
 
 
 // ---------------------------------------------
-void set_low_battery(bool b)
+void set_failsafe_battery(bool b)
 {
-    ap.low_battery = b;
+    failsafe.battery = b;
+    AP_Notify::flags.failsafe_battery = b;
 }
 
 
 // ---------------------------------------------
-static void set_failsafe_gps(bool mode)
+static void set_failsafe_gps(bool b)
 {
-    ap.failsafe_gps = mode;
+    failsafe.gps = b;
+
+    // update AP_Notify
+    AP_Notify::flags.failsafe_gps = b;
 }
 
 // ---------------------------------------------
-static void set_failsafe_gcs(bool mode)
+static void set_failsafe_gcs(bool b)
 {
-    ap.failsafe_gcs = mode;
+    failsafe.gcs = b;
 }
 
 // ---------------------------------------------
@@ -114,27 +123,18 @@ void set_land_complete(bool b)
 
 // ---------------------------------------------
 
-void set_compass_healthy(bool b)
-{
-    if(ap.compass_status != b) {
-        if(b) {
-            // compass has just recovered so log to the dataflash
-            Log_Write_Error(ERROR_SUBSYSTEM_COMPASS,ERROR_CODE_ERROR_RESOLVED);
-        }else{
-            // compass has just failed so log an error to the dataflash
-            Log_Write_Error(ERROR_SUBSYSTEM_COMPASS,ERROR_CODE_COMPASS_FAILED_TO_READ);
-        }
-    }
-    ap.compass_status = b;
-}
-
-// ---------------------------------------------
-
 void set_pre_arm_check(bool b)
 {
     if(ap.pre_arm_check != b) {
         ap.pre_arm_check = b;
         AP_Notify::flags.pre_arm_check = b;
+    }
+}
+
+void set_pre_arm_rc_check(bool b)
+{
+    if(ap.pre_arm_rc_check != b) {
+        ap.pre_arm_rc_check = b;
     }
 }
 

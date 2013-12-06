@@ -25,12 +25,13 @@
 #include <AP_Math.h>
 #include <AP_AHRS.h>
 #include <AP_Param.h>
+#include <AP_Vehicle.h>
 #include <AP_SpdHgtControl.h>
 #include <DataFlash.h>
 
 class AP_TECS : public AP_SpdHgtControl {
 public:
-	AP_TECS(AP_AHRS &ahrs, const AP_SpdHgtControl::AircraftParameters &parms) :
+	AP_TECS(AP_AHRS &ahrs, const AP_Vehicle::FixedWing &parms) :
 		_ahrs(ahrs),
 		aparm(parms)
 		{
@@ -46,7 +47,7 @@ public:
 	// Update the control loop calculations
     void update_pitch_throttle(int32_t hgt_dem_cm, 
                                int32_t EAS_dem_cm, 
-                               bool climbOutDem, 
+                               enum FlightStage flight_stage,
                                int32_t ptchMinCO_cd,
                                int16_t throttle_nudge,
 							   float hgt_afe);
@@ -70,6 +71,7 @@ public:
 
 	struct PACKED log_TECS_Tuning {
 		LOG_PACKET_HEADER;
+		uint32_t time_ms;
 		float hgt;
 		float dhgt;
 		float hgt_dem;
@@ -97,7 +99,7 @@ private:
 	// reference to the AHRS object
     AP_AHRS &_ahrs;
 
-	const AP_SpdHgtControl::AircraftParameters &aparm;
+	const AP_Vehicle::FixedWing &aparm;
 
 	// TECS tuning parameters
 	AP_Float _hgtCompFiltOmega;
@@ -189,7 +191,7 @@ private:
     bool _badDescent;
 
     // climbout mode
-    bool _climbOutDem;
+    enum FlightStage _flight_stage;
 
 	// throttle demand before limiting
 	float _throttle_dem_unc;
@@ -263,6 +265,6 @@ private:
 };
 
 #define TECS_LOG_FORMAT(msg) { msg, sizeof(AP_TECS::log_TECS_Tuning),	\
-							   "TECS", "ffffffffffff", "h,dh,h_dem,dh_dem,sp_dem,sp,dsp,ith,iph,th,ph,dsp_dem" }
+							   "TECS", "Iffffffffffff", "TimeMS,h,dh,h_dem,dh_dem,sp_dem,sp,dsp,ith,iph,th,ph,dsp_dem" }
 
 #endif //AP_TECS_H

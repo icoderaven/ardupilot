@@ -30,6 +30,7 @@
 #include <AP_Relay.h>       // APM relay
 #include <AP_Camera.h>          // Photo or video camera
 #include <AP_Airspeed.h>
+#include <AP_Vehicle.h>
 #include <AP_SpdHgtControl.h>
 #include <memcheck.h>
 
@@ -65,7 +66,7 @@ static Parameters g;
 static GPS         *g_gps;
 AP_GPS_Auto     g_gps_driver(&g_gps);
 AP_InertialSensor_MPU6000 ins;
-AP_AHRS_DCM  ahrs(&ins, g_gps);
+AP_AHRS_DCM  ahrs(ins, g_gps);
 
 static AP_Compass_HIL compass;
 AP_Baro_HIL      barometer;

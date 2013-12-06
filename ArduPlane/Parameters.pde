@@ -9,6 +9,7 @@
 #define ASCALAR(v, name, def) { aparm.v.vtype, name, Parameters::k_param_ ## v, &aparm.v, {def_value : def} }
 #define GGROUP(v, name, class) { AP_PARAM_GROUP, name, Parameters::k_param_ ## v, &g.v, {group_info : class::var_info} }
 #define GOBJECT(v, name, class) { AP_PARAM_GROUP, name, Parameters::k_param_ ## v, &v, {group_info : class::var_info} }
+#define GOBJECTN(v, pname, name, class) { AP_PARAM_GROUP, name, Parameters::k_param_ ## pname, &v, {group_info : class::var_info} }
 
 const AP_Param::Info var_info[] PROGMEM = {
     GSCALAR(format_version,         "FORMAT_VERSION", 0),
@@ -30,17 +31,26 @@ const AP_Param::Info var_info[] PROGMEM = {
 
     // @Param: SERIAL0_BAUD
     // @DisplayName: USB Console Baud Rate
-    // @Description: The baud rate used on the main uart
+    // @Description: The baud rate used on the USB console
     // @Values: 1:1200,2:2400,4:4800,9:9600,19:19200,38:38400,57:57600,111:111100,115:115200
     // @User: Standard
     GSCALAR(serial0_baud,           "SERIAL0_BAUD",   SERIAL0_BAUD/1000),
 
-    // @Param: SERIAL3_BAUD
+    // @Param: SERIAL1_BAUD
     // @DisplayName: Telemetry Baud Rate
-    // @Description: The baud rate used on the telemetry port
+    // @Description: The baud rate used on the first telemetry port
     // @Values: 1:1200,2:2400,4:4800,9:9600,19:19200,38:38400,57:57600,111:111100,115:115200
     // @User: Standard
-    GSCALAR(serial3_baud,           "SERIAL3_BAUD",   SERIAL3_BAUD/1000),
+    GSCALAR(serial1_baud,           "SERIAL1_BAUD",   SERIAL1_BAUD/1000),
+
+#if MAVLINK_COMM_NUM_BUFFERS > 2
+    // @Param: SERIAL2_BAUD
+    // @DisplayName: Telemetry Baud Rate
+    // @Description: The baud rate used on the second telemetry port
+    // @Values: 1:1200,2:2400,4:4800,9:9600,19:19200,38:38400,57:57600,111:111100,115:115200
+    // @User: Standard
+    GSCALAR(serial2_baud,           "SERIAL2_BAUD",   SERIAL2_BAUD/1000),
+#endif
 
     // @Param: TELEM_DELAY
     // @DisplayName: Telemetry startup delay 
@@ -81,6 +91,13 @@ const AP_Param::Info var_info[] PROGMEM = {
     // @User: Advanced
     GSCALAR(skip_gyro_cal,           "SKIP_GYRO_CAL",   0),
 
+    // @Param: AUTO_FBW_STEER
+    // @DisplayName: Use FBWA steering in AUTO
+    // @Description: When enabled this option gives FBWA navigation and steering in AUTO mode. This can be used to allow manual stabilised piloting with waypoint logic for triggering payloads. With this enabled the pilot has the same control over the plane as in FBWA mode, and the normal AUTO navigation is completely disabled. This option is not recommended for normal use.
+    // @Values: 0:Disabled,1:Enabled
+    // @User: Advanced
+    GSCALAR(auto_fbw_steer,          "AUTO_FBW_STEER",   0),
+
     // @Param: TKOFF_THR_MINSPD
     // @DisplayName: Takeoff throttle min speed
     // @Description: Minimum GPS ground speed in m/s used by the speed check that un-suppresses throttle in auto-takeoff. This can be be used for catapult launches where you want the motor to engage only after the plane leaves the catapult, but it is preferable to use the TKOFF_THR_MINACC and TKOFF_THR_DELAY parameters for cvatapult launches due to the errors associated with GPS measurements. For hand launches with a pusher prop it is strongly advised that this parameter be set to a value no less than 4 m/s to provide additional protection against premature motor start. Note that the GPS velocity will lag the real velocity by about 0.5 seconds. The ground speed check is delayed by the TKOFF_THR_DELAY parameter.
@@ -106,7 +123,7 @@ const AP_Param::Info var_info[] PROGMEM = {
     // @Range: 0 15
     // @Increment: 1
     // @User: User
-    GSCALAR(takeoff_throttle_delay,     "TKOFF_THR_DELAY",  0),
+    GSCALAR(takeoff_throttle_delay,     "TKOFF_THR_DELAY",  2),
 
     // @Param: LEVEL_ROLL_LIMIT
     // @DisplayName: Level flight roll limit
@@ -142,8 +159,8 @@ const AP_Param::Info var_info[] PROGMEM = {
 
 	// @Param: NAV_CONTROLLER
 	// @DisplayName: Navigation controller selection
-	// @Description: Which navigation controller to enable
-	// @Values: 0:Legacy,1:L1Controller
+	// @Description: Which navigation controller to enable. Currently the only navigation controller available is L1. From time to time other experimental conrtrollers will be added which are selected using this parameter.
+	// @Values: 0:Default,1:L1Controller
 	// @User: Standard
 	GSCALAR(nav_controller,          "NAV_CONTROLLER",   AP_Navigation::CONTROLLER_L1),
 
@@ -158,8 +175,8 @@ const AP_Param::Info var_info[] PROGMEM = {
 
     // @Param: ALT_CTRL_ALG
     // @DisplayName: Altitude control algorithm
-    // @Description: This sets what algorithm will be used for altitude control. The default is zero, which selects the most appropriate algorithm for your airframe. Currently the default is to use TECS (total energy control system). If you set it to 1 then you will get the old (deprecated) non-airspeed based algorithm. If you set it to 3 then you will get the old (deprecated) airspeed based algorithm. Setting it to 2 selects the new 'TECS' (total energy control system) altitude control, which currently is equivalent to setting 0. Note that TECS is able to handle aircraft both with and without an airspeed sensor.
-    // @Values: 0:Automatic,1:non-airspeed(deprecated),2:TECS,3:airspeed(deprecated)
+    // @Description: This sets what algorithm will be used for altitude control. The default is zero, which selects the most appropriate algorithm for your airframe. Currently the default is to use TECS (total energy control system). From time to time we will add other experimental altitude control algorithms which will be seleted using this parameter.
+    // @Values: 0:Automatic
     // @User: Advanced
     GSCALAR(alt_control_algorithm, "ALT_CTRL_ALG",    ALT_CONTROL_DEFAULT),
 
@@ -188,12 +205,21 @@ const AP_Param::Info var_info[] PROGMEM = {
 
     // @Param: WP_RADIUS
     // @DisplayName: Waypoint Radius
-    // @Description: Defines the distance from a waypoint, that when crossed indicates the wp has been hit.
+    // @Description: Defines the distance from a waypoint that when crossed indicates the waypoint has been completed. To avoid the aircraft looping around the waypoint in case it misses by more than the WP_RADIUS an additional check is made to see if the aircraft has crossed a "finish line" passing through the waypoint and perpendicular to the flight path from the previous waypoint. If that finish line is crossed then the waypoint is considered complete.
     // @Units: Meters
     // @Range: 1 32767
     // @Increment: 1
     // @User: Standard
     GSCALAR(waypoint_radius,        "WP_RADIUS",      WP_RADIUS_DEFAULT),
+
+    // @Param: WP_MAX_RADIUS
+    // @DisplayName: Waypoint Maximum Radius
+    // @Description: Sets the maximum distance to a waypoint for the waypoint to be considered complete. This overrides the "cross the finish line" logic that is normally used to consider a waypoint complete. For normal AUTO behaviour this parameter should be set to zero. Using a non-zero value is only recommended when it is critical that the aircraft does approach within the given radius, and should loop around until it has done so. This can cause the aircraft to loop forever if its turn radius is greater than the maximum radius set.
+    // @Units: Meters
+    // @Range: 0 32767
+    // @Increment: 1
+    // @User: Standard
+    GSCALAR(waypoint_max_radius,        "WP_MAX_RADIUS",      0),
 
     // @Param: WP_LOITER_RAD
     // @DisplayName: Waypoint Loiter Radius
@@ -207,15 +233,15 @@ const AP_Param::Info var_info[] PROGMEM = {
 #if GEOFENCE_ENABLED == ENABLED
     // @Param: FENCE_ACTION
     // @DisplayName: Action on geofence breach
-    // @Description: What to do on fence breach
-    // @Values: 0:None,1:GuidedMode,2:ReportOnly
+    // @Description: What to do on fence breach. If this is set to 0 then no action is taken, and geofencing is disabled. If this is set to 1 then the plane will enter GUIDED mode, with the target waypoint as the fence return point. If this is set to 2 then the fence breach is reported to the ground station, but no other action is taken. If set to 3 then the plane enters guided mode but the pilot retains manual throttle control.
+    // @Values: 0:None,1:GuidedMode,2:ReportOnly,3:GuidedModeThrPass
     // @User: Standard
     GSCALAR(fence_action,           "FENCE_ACTION",   0),
 
     // @Param: FENCE_TOTAL
     // @DisplayName: Fence Total
     // @Description: Number of geofence points currently loaded
-    // @User: Standard
+    // @User: Advanced
     GSCALAR(fence_total,            "FENCE_TOTAL",    0),
 
     // @Param: FENCE_CHANNEL
@@ -242,6 +268,20 @@ const AP_Param::Info var_info[] PROGMEM = {
     // @User: Standard
     GSCALAR(fence_maxalt,           "FENCE_MAXALT",   0),
 #endif
+
+    // @Param: RALLY_TOTAL
+    // @DisplayName: Rally Total
+    // @Description: Number of rally points currently loaded
+    // @User: Advanced
+    GSCALAR(rally_total,            "RALLY_TOTAL",    0),
+
+    // @Param: RALLY_LIMIT_KM
+    // @DisplayName: Rally Limit
+    // @Description: Maximum distance to rally point. If the closest rally point is more than this number of kilometers from the current position and the home location is closer than any of the rally points from the current position then do RTL to home rather than to the closest rally point. This prevents a leftover rally point from a different airfield being used accidentally. If this is set to 0 then the closest rally point is always used.
+    // @User: Advanced
+    // @Units: kilometers
+    // @Increment: 0.1
+    GSCALAR(rally_limit_km,          "RALLY_LIMIT_KM",    5),
 
     // @Param: ARSPD_FBW_MIN
     // @DisplayName: Fly By Wire Minimum Airspeed
@@ -344,7 +384,7 @@ const AP_Param::Info var_info[] PROGMEM = {
 
     // @Param: THROTTLE_NUDGE
     // @DisplayName: Throttle nudge enable
-    // @Description: When enabled, this uses the throttle input in auto-throttle modes to 'nudge' the throttle to higher or lower values
+    // @Description: When enabled, this uses the throttle input in auto-throttle modes to 'nudge' the throttle or airspeed to higher or lower values. When you have an airspeed sensor the nudge affects the target airspeed, so that throttle inputs above 50% will increase the target airspeed from TRIM_ARSPD_CM up to a maximum of ARSPD_FBW_MAX. When no airspeed sensor is enabled the throttle nudge will push up the target throttle for throttle inputs above 50%.
     // @Values: 0:Disabled,1:Enabled
     // @User: Standard
     // @User: Standard
@@ -352,8 +392,8 @@ const AP_Param::Info var_info[] PROGMEM = {
 
     // @Param: FS_SHORT_ACTN
     // @DisplayName: Short failsafe action
-    // @Description: The action to take on a short (FS_SHORT_TIMEOUT) failsafe event in AUTO, GUIDED or LOITER modes. A short failsafe event in stabilization modes will always cause an immediate change to CIRCLE mode. In AUTO mode you can choose whether it will enter CIRCLE mode or continue with the mission. If FS_SHORT_ACTN is 0 then it will continue with the mission, if it is 1 then it will enter CIRCLE mode, and then enter RTL if the failsafe condition persists for FS_LONG_TIMEOUT seconds.
-    // @Values: 0:Continue,1:Circle/ReturnToLaunch
+    // @Description: The action to take on a short (FS_SHORT_TIMEOUT) failsafe event in AUTO, GUIDED or LOITER modes. A short failsafe event in stabilization modes will always cause an immediate change to CIRCLE mode. In AUTO mode you can choose whether it will enter CIRCLE mode or continue with the mission. If FS_SHORT_ACTN is 0 then it will continue with the mission, if it is 1 then it will enter CIRCLE mode, and then enter RTL if the failsafe condition persists for FS_LONG_TIMEOUT seconds. If it is set to 2 then the plane will enter FBWA mode with zero throttle and level attitude to glide in.
+    // @Values: 0:Continue,1:Circle/ReturnToLaunch,2:Glide
     // @User: Standard
     GSCALAR(short_fs_action,        "FS_SHORT_ACTN",  SHORT_FAILSAFE_ACTION),
 
@@ -368,8 +408,8 @@ const AP_Param::Info var_info[] PROGMEM = {
 
     // @Param: FS_LONG_ACTN
     // @DisplayName: Long failsafe action
-    // @Description: The action to take on a long (FS_LONG_TIMEOUT seconds) failsafe event in AUTO, GUIDED or LOITER modes. A long failsafe event in stabilization modes will always cause an RTL (ReturnToLaunch). In AUTO modes you can choose whether it will RTL or continue with the mission. If FS_LONG_ACTN is 0 then it will continue with the mission, if it is 1 then it will enter RTL mode. Note that if FS_SHORT_ACTN is 1, then the aircraft will enter CIRCLE mode after FS_SHORT_TIMEOUT seconds of failsafe, and will always enter RTL after FS_LONG_TIMEOUT seconds of failsafe, regardless of the FS_LONG_ACTN setting.
-    // @Values: 0:Continue,1:ReturnToLaunch
+    // @Description: The action to take on a long (FS_LONG_TIMEOUT seconds) failsafe event in AUTO, GUIDED or LOITER modes. A long failsafe event in stabilization modes will always cause an RTL (ReturnToLaunch). In AUTO modes you can choose whether it will RTL or continue with the mission. If FS_LONG_ACTN is 0 then it will continue with the mission, if it is 1 then it will enter RTL mode. Note that if FS_SHORT_ACTN is 1, then the aircraft will enter CIRCLE mode after FS_SHORT_TIMEOUT seconds of failsafe, and will always enter RTL after FS_LONG_TIMEOUT seconds of failsafe, regardless of the FS_LONG_ACTN setting. If FS_LONG_ACTN is set to 2 then instead of using RTL it will enter a FBWA glide with zero throttle.
+    // @Values: 0:Continue,1:ReturnToLaunch,2:Glide
     // @User: Standard
     GSCALAR(long_fs_action,         "FS_LONG_ACTN",   LONG_FAILSAFE_ACTION),
 
@@ -384,15 +424,17 @@ const AP_Param::Info var_info[] PROGMEM = {
 
     // @Param: FS_BATT_VOLTAGE
     // @DisplayName: Failsafe battery voltage
-    // @Description: Battery voltage to trigger failsafe. Set to 0 to disable battery voltage failsafe. If the battery voltage drops below this voltage then the plane will RTL
+    // @Description: Battery voltage to trigger failsafe. Set to 0 to disable battery voltage failsafe. If the battery voltage drops below this voltage continuously for 10 seconds then the plane will switch to RTL mode
     // @Units: Volts
+    // @Increment: 0.1
     // @User: Standard
     GSCALAR(fs_batt_voltage,        "FS_BATT_VOLTAGE", 0),
 
     // @Param: FS_BATT_MAH
     // @DisplayName: Failsafe battery milliAmpHours
-    // @Description: Battery capacity remaining to trigger failsafe. Set to 0 to disable battery remaining failsafe. If the battery remaining drops below this level then the plane will RTL
+    // @Description: Battery capacity remaining to trigger failsafe. Set to 0 to disable battery remaining failsafe. If the battery remaining drops below this level then the plane will switch to RTL mode immediately
     // @Units: mAh
+    // @Increment: 50
     // @User: Standard
     GSCALAR(fs_batt_mah,            "FS_BATT_MAH", 0),
 
@@ -495,6 +537,31 @@ const AP_Param::Info var_info[] PROGMEM = {
     // @Increment: 1
     // @User: Standard
     GSCALAR(acro_pitch_rate,          "ACRO_PITCH_RATE",  180),
+
+    // @Param: ACRO_LOCKING
+    // @DisplayName: ACRO mode attitude locking
+    // @Description: Enable attitude locking when sticks are released
+    // @Values: 0:Disabled,1:Enabled
+    // @User: Standard
+    GSCALAR(acro_locking,             "ACRO_LOCKING",     0),
+
+    // @Param: GROUND_STEER_ALT
+    // @DisplayName: Ground steer altitude
+    // @Description: Altitude at which to use the ground steering controller on the rudder. If non-zero then the STEER2SRV controller will be used to control the rudder for altitudes within this limit of the home altitude.
+    // @Units: Meters
+    // @Range: -100 100
+    // @Increment: 0.1
+    // @User: Standard
+    GSCALAR(ground_steer_alt,         "GROUND_STEER_ALT",   0),
+
+    // @Param: GROUND_STEER_DPS
+    // @DisplayName: Ground steer rate
+    // @Description: Ground steering rate in degrees per second for full rudder stick deflection
+    // @Units: Meters
+    // @Range: 10 360
+    // @Increment: 1
+    // @User: Advanced
+    GSCALAR(ground_steer_dps,         "GROUND_STEER_DPS",  90),
 
     // @Param: TRIM_AUTO
     // @DisplayName: Automatic trim adjustment
@@ -661,54 +728,6 @@ const AP_Param::Info var_info[] PROGMEM = {
     // @User: Advanced
     GSCALAR(flap_2_speed,           "FLAP_2_SPEED",   FLAP_2_SPEED),
 
-    // @Param: BATT_MONITOR
-    // @DisplayName: Battery monitoring
-    // @Description: Controls enabling monitoring of the battery's voltage and current
-    // @Values: 0:Disabled,3:Voltage Only,4:Voltage and Current
-    // @User: Standard
-    GSCALAR(battery_monitoring,     "BATT_MONITOR",   0),
-
-    // @Param: VOLT_DIVIDER
-    // @DisplayName: Voltage Divider
-    // @Description: Used to convert the voltage of the voltage sensing pin (BATT_VOLT_PIN) to the actual battery's voltage (pin_voltage * VOLT_DIVIDER). For the 3DR Power brick, this should be set to 10.1. For the PX4 using the PX4IO power supply this should be set to 1.
-    // @User: Advanced
-    GSCALAR(volt_div_ratio,         "VOLT_DIVIDER",   VOLT_DIV_RATIO),
-
-    // @Param: APM_PER_VOLT
-    // @DisplayName: Apms per volt
-    // @Description: Number of amps that a 1V reading on the current sensor corresponds to
-    // @Units: A/V
-    // @User: Standard
-    GSCALAR(curr_amp_per_volt,      "AMP_PER_VOLT",   CURR_AMP_PER_VOLT),
-
-    // @Param: AMP_OFFSET
-    // @DisplayName: AMP offset
-    // @Description: Voltage offset at zero current on current sensor
-    // @Units: Volts
-    // @User: Standard
-    GSCALAR(curr_amp_offset,        "AMP_OFFSET",     0),
-
-    // @Param: BATT_CAPACITY
-    // @DisplayName: Battery capacity
-    // @Description: Capacity of the battery in mAh when full
-    // @Units: mAh
-    // @User: Standard
-    GSCALAR(pack_capacity,          "BATT_CAPACITY",  1760),
-
-    // @Param: BATT_VOLT_PIN
-    // @DisplayName: Battery Voltage sensing pin
-    // @Description: Setting this to 0 ~ 13 will enable battery current sensing on pins A0 ~ A13. For the 3DR power brick on APM2.5 it should be set to 13. On the PX4 it should be set to 100.
-    // @Values: -1:Disabled, 0:A0, 1:A1, 13:A13, 100:PX4
-    // @User: Standard
-    GSCALAR(battery_volt_pin,    "BATT_VOLT_PIN",    BATTERY_VOLT_PIN),
-
-    // @Param: BATT_CURR_PIN
-    // @DisplayName: Battery Current sensing pin
-    // @Description: Setting this to 0 ~ 13 will enable battery current sensing on pins A0 ~ A13. For the 3DR power brick on APM2.5 it should be set to 12. On the PX4 it should be set to 101. 
-    // @Values: -1:Disabled, 1:A1, 2:A2, 12:A12, 101:PX4
-    // @User: Standard
-    GSCALAR(battery_curr_pin,    "BATT_CURR_PIN",    BATTERY_CURR_PIN),
-
     // @Param: RSSI_PIN
     // @DisplayName: Receiver RSSI sensing pin
     // @Description: This selects an analog pin for the receiver RSSI voltage. It assumes the voltage is 5V for max rssi, 0V for minimum
@@ -730,6 +749,15 @@ const AP_Param::Info var_info[] PROGMEM = {
     // @Values: 0:Disabled,1:Enabled
     // @User: Advanced
     GSCALAR(hil_servos,            "HIL_SERVOS",      0),
+
+    // @Param: HIL_ERR_LIMIT
+    // @DisplayName: Limit of error in HIL attitude before reset
+    // @Description: This controls the maximum error in degrees on any axis before HIL will reset the DCM attitude to match the HIL_STATE attitude. This limit will prevent poor timing on HIL from causing a major attitude error. If the value is zero then no limit applies.
+    // @Units: degrees
+    // @Range: 0 90
+    // @Increment: 0.1
+    // @User: Advanced
+    GSCALAR(hil_err_limit,         "HIL_ERR_LIMIT",   5),
 #endif
 
     // barometer ground calibration. The GND_ prefix is chosen for
@@ -747,6 +775,10 @@ const AP_Param::Info var_info[] PROGMEM = {
     // @Group: RELAY_
     // @Path: ../libraries/AP_Relay/AP_Relay.cpp
     GOBJECT(relay,                  "RELAY_", AP_Relay),
+
+    // @Group: SONAR_
+    // @Path: ../libraries/AP_RangeFinder/AP_RangeFinder_analog.cpp
+    GOBJECT(sonar,                  "SONAR_", AP_RangeFinder_analog),
 
     // RC channel
     //-----------
@@ -804,8 +836,6 @@ const AP_Param::Info var_info[] PROGMEM = {
     GGROUP(rc_12,                    "RC12_", RC_Channel_aux),
 #endif
 
-	GGROUP(pidWheelSteer,           "WHEELSTEER_",PID),
-
     // @Group: RLL2SRV_
     // @Path: ../libraries/APM_Control/AP_RollController.cpp
 	GOBJECT(rollController,         "RLL2SRV_",   AP_RollController),
@@ -817,6 +847,10 @@ const AP_Param::Info var_info[] PROGMEM = {
     // @Group: YAW2SRV_
     // @Path: ../libraries/APM_Control/AP_YawController.cpp
 	GOBJECT(yawController,          "YAW2SRV_",   AP_YawController),
+
+    // @Group: STEER2SRV_
+    // @Path: ../libraries/APM_Control/AP_SteerController.cpp
+	GOBJECT(steerController,        "STEER2SRV_",   AP_SteerController),
 
 	// variables not in the g class which contain EEPROM saved variables
 
@@ -832,8 +866,19 @@ const AP_Param::Info var_info[] PROGMEM = {
     // @Path: ../libraries/AP_RCMapper/AP_RCMapper.cpp
     GOBJECT(rcmap,                "RCMAP_",         RCMapper),
 
-    GOBJECT(gcs0,                                   "SR0_",     GCS_MAVLINK),
-    GOBJECT(gcs3,                                   "SR3_",     GCS_MAVLINK),
+    // @Group: SR0_
+    // @Path: GCS_Mavlink.pde
+    GOBJECTN(gcs[0], gcs0,        "SR0_",     GCS_MAVLINK),
+
+    // @Group: SR1_
+    // @Path: GCS_Mavlink.pde
+    GOBJECTN(gcs[1],  gcs1,       "SR1_",     GCS_MAVLINK),
+
+#if MAVLINK_COMM_NUM_BUFFERS > 2
+    // @Group: SR2_
+    // @Path: GCS_Mavlink.pde
+    GOBJECTN(gcs[2],  gcs2,       "SR2_",     GCS_MAVLINK),
+#endif
 
     // @Group: INS_
     // @Path: ../libraries/AP_InertialSensor/AP_InertialSensor.cpp
@@ -866,6 +911,10 @@ const AP_Param::Info var_info[] PROGMEM = {
     // @Path: ../libraries/AP_Mount/AP_Mount.cpp
     GOBJECT(camera_mount2,           "MNT2_",       AP_Mount),
 #endif
+
+    // @Group: BATT_
+    // @Path: ../libraries/AP_BattMonitor/AP_BattMonitor.cpp
+    GOBJECT(battery,                "BATT_",       AP_BattMonitor),
 
 #if CONFIG_HAL_BOARD == HAL_BOARD_AVR_SITL
     // @Group: SIM_
@@ -903,6 +952,14 @@ const AP_Param::ConversionInfo conversion_table[] PROGMEM = {
     { Parameters::k_param_pidServoPitch, 1, AP_PARAM_FLOAT, "PTCH2SRV_I" },
     { Parameters::k_param_pidServoPitch, 2, AP_PARAM_FLOAT, "PTCH2SRV_D" },
     { Parameters::k_param_pidServoPitch, 3, AP_PARAM_FLOAT, "PTCH2SRV_IMAX" },
+
+    { Parameters::k_param_battery_monitoring, 0,      AP_PARAM_INT8,  "BATT_MONITOR" },
+    { Parameters::k_param_battery_volt_pin,   0,      AP_PARAM_INT8,  "BATT_VOLT_PIN" },
+    { Parameters::k_param_battery_curr_pin,   0,      AP_PARAM_INT8,  "BATT_CURR_PIN" },
+    { Parameters::k_param_volt_div_ratio,     0,      AP_PARAM_FLOAT, "BATT_VOLT_MULT" },
+    { Parameters::k_param_curr_amp_per_volt,  0,      AP_PARAM_FLOAT, "BATT_AMP_PERVOLT" },
+    { Parameters::k_param_curr_amp_offset,    0,      AP_PARAM_FLOAT, "BATT_AMP_OFFSET" },
+    { Parameters::k_param_pack_capacity,      0,      AP_PARAM_INT32, "BATT_CAPACITY" },
 };
 
 static void load_parameters(void)

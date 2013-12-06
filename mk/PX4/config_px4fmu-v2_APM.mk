@@ -23,7 +23,7 @@ MODULES		+= drivers/boards/px4fmu-v2
 MODULES		+= drivers/rgbled
 MODULES		+= drivers/lsm303d
 MODULES		+= drivers/l3gd20
-#MODULES		+= drivers/mpu6000
+MODULES		+= drivers/mpu6000
 MODULES		+= drivers/hmc5883
 MODULES		+= drivers/ms5611
 MODULES		+= drivers/mb12xx
@@ -53,6 +53,7 @@ MODULES		+= systemcmds/top
 MODULES		+= systemcmds/tests
 MODULES		+= systemcmds/nshterm
 #MODULES		+= systemcmds/eeprom
+MODULES              += systemcmds/auth
 
 #
 # Library modules
@@ -61,6 +62,9 @@ MODULES		+= modules/systemlib
 MODULES		+= modules/systemlib/mixer
 MODULES		+= modules/uORB
 MODULES		+= lib/mathlib/math/filter
+MODULES	        += modules/libtomfastmath
+MODULES         += modules/libtomcrypt
+
 
 #
 # Transitional support - add commands from the NuttX export archive.
