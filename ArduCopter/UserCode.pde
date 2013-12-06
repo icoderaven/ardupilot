@@ -53,10 +53,11 @@ void userhook_SlowLoop()
     }*/
      if( millis() - last_cmd_time > 400 && is_RPY) //i.e. if we haven't heard in 1 seconds
     {
-       //Clear the commanded roll pitch and yaw
-       cmd_roll = 0;
-       cmd_pitch = 0;
-       cmd_yaw = 0;
+       //Clear the commanded roll pitch and yaw  
+       // Maybe setting 0 is a bad idea ; it should go back to the RC
+       cmd_roll = g.rc_1.control_in;
+       cmd_pitch = g.rc_2.control_in;
+       cmd_yaw = g.rc_4.control_in;
        //gcs_send_text_fmt( PSTR("Resetting command rpy, lct = %d, ct = %d"), last_cmd_time, millis());
        is_RPY = false;
     }
