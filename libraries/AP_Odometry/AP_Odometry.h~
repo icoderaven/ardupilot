@@ -60,8 +60,8 @@ protected:
 
     //AP_AHRS*                _ahrs;                      // pointer to ahrs object
     //Count variables
-    //volatile long pos0; //left motor
-    //volatile long pos1; //right motor
+    volatile long pos0; //left motor
+    volatile long pos1; //right motor
 
     //distances in m
     unsigned long countsPerRevolution;

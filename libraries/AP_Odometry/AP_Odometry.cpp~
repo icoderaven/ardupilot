@@ -1,11 +1,20 @@
 /// -*- tab-width: 4; Mode: C++; c-basic-offset: 4; indent-tabs-mode: nil -*-
 #include <AP_HAL.h>
+#include <avr/interrupt.h>
+#include <avr/io.h>
+#include "../AP_HAL_AVR/utility/pins_arduino_mega.h"
+#include <AP_Math.h>
 #include <AP_Odometry.h>
 
 extern const AP_HAL::HAL& hal;
 
-// table of user settable parameters
-const AP_Param::GroupInfo AP_InertialNav::var_info[] PROGMEM = {
+static volatile long pos0=0;
+static volatile long pos1=0;
+
+static void position0();
+static void position1();
+/* table of user settable parameters
+const AP_Param::GroupInfo AP_Odometry::var_info[] PROGMEM = {
 	// start numbering at 1 because 0 was previous used for body frame accel offsets
 	// @Param: TC_XY
 	// @DisplayName: Horizontal Time Constant
@@ -22,25 +31,36 @@ const AP_Param::GroupInfo AP_InertialNav::var_info[] PROGMEM = {
 	AP_GROUPINFO("TC_Z",    2, AP_InertialNav, _time_constant_z, AP_INTERTIALNAV_TC_Z),
 
 	AP_GROUPEND
-};
+};*/
 
 // init - initialise library
 void AP_Odometry::init()
 {
-	PI_VAL = 22.0/7.0;
+    pos0=0;
+    pos1=0;
+    prevLeftEncoderCount=0;
+    prevRightEncoderCount=0;
+    mx=0.0;
+    my=0.0;
+    mth=0.0;
+
+    pose = Vector3f(0,0,0);
+    
+	PI_VAL = 3.14159;
 	countsPerRevolution = 816;
-	wheelDiameter = 12.0/100.0;
-	wheelBase= 24.0/100.0;
+	wheelDiameter = 0.12;
+	wheelBase= 0.24;
 
 	distancePerCount = (PI_VAL * wheelDiameter) / (float)countsPerRevolution;
 	radiansPerCount = PI_VAL * (wheelDiameter / wheelBase) / countsPerRevolution;
 
-	attachInterrupt(INT0,position0,CHANGE);
-	attachInterrupt(INT1,position1,CHANGE);
+    //void (*p0)() = position0;
+	hal.gpio->attach_interrupt(INT0,position0,CHANGE);
+	hal.gpio->attach_interrupt(INT1,position1,CHANGE);
 }
 
 //update odometry position estimate
-void AP_Odometry::update_pos()
+void AP_Odometry::update_pose()
 {
 	long leftEncoderCount=0;
 	long rightEncoderCount=0;
@@ -51,8 +71,10 @@ void AP_Odometry::update_pos()
 	float dY=0.0f;
 	float dth=0.0f;
 
+    noInterrupts();    
 	leftEncoderCount = pos0;
 	rightEncoderCount = pos1;
+    interrupts();
 
 	dLEC = leftEncoderCount - prevLeftEncoderCount;
 	dREC = rightEncoderCount - prevRightEncoderCount;
@@ -75,9 +97,19 @@ void AP_Odometry::update_pos()
 		mth = mth - (2 * PI_VAL);
 	else if(mth <= -PI_VAL)
 		mth = mth + (2 * PI_VAL);  
+
 }
 
-void AP_Odometry::position0()
+Vector3f AP_Odometry::get_pose()
+ {    
+     noInterrupts();
+     pose.x = mx;
+     pose.y = my;
+     pose.z = mth;
+     interrupts();
+     return pose; }
+
+static void position0()
 {
 	if(LT_PHASE_A == LT_PHASE_B)
 		pos0++;
@@ -85,7 +117,7 @@ void AP_Odometry::position0()
 		pos0--; 
 }
 
-void AP_Odometry::position1(){
+static void position1(){
 
 	if(RT_PHASE_A == RT_PHASE_B)
 		pos1--;

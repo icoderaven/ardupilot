@@ -30,9 +30,6 @@ public:
             uint8_t mode);
 /* private-ish: only to be used from the appropriate interrupt */
     static AP_HAL::Proc _interrupt_6;
-    //@Rover
-    static AP_HAL::Proc _interrupt_0;
-    static AP_HAL::Proc _interrupt_1;	
 };
 
 #endif // __AP_HAL_AVR_GPIO_H__

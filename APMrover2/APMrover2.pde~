@@ -169,7 +169,7 @@ static GPS         *g_gps;
 
 // @Rover
 static AP_Odometry _odometry;
-static AP_Odometry *odometry = &_odometry;
+static AP_Odometry *odometry=&_odometry;
 // flight modes convenience array
 static AP_Int8		*modes = &g.mode1;
 
