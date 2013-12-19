@@ -2,23 +2,12 @@
 
 #include <math.h>
 #include <Time.h>
+#include <TimerOne.h>
 
-/*
-  ReadAnalogVoltage
-  Reads an analog input on pin 0, converts it to voltage, and prints the result to the serial monitor.
-  Attach the center pin of a potentiometer to pin A0, and the outside pins to +5V and ground.
- 
- This example code is in the public domain.
- */
-
- 
 //Interrupts used 
 #define INT0 0
 #define INT1 1
 
-//Refresh period
-#define DELAY 500
- 
 //Pins used
 //Encoder Left
 #define encLtA  2
@@ -32,7 +21,7 @@
 #define LT_PHASE_B digitalRead(encLtB)
 #define RT_PHASE_A digitalRead(encRtA)
 #define RT_PHASE_B digitalRead(encRtB)
-  
+
 //TO pololu motor controller  
 #define SEND_CMD(x)         Serial1.write(x)
 
@@ -66,240 +55,145 @@
 volatile long pos0 = 0;
 volatile long pos1 = 0;
 
-/*
-//x,y,theta calculations
-float ticdistance = .00051589879;
-long lastLeft = 0;
-long lastRight = 0;
-float x = 0;
-float y = 0;
-float th= 0;
-float vr=0;
-float vl=0;
-float V=0;
-float w=0;
-time_t lastTime=0;
-time_t dt = 0;
-float wheelBase = .24;
-long currentPos0 = 0;
-long currentPos1 = 0;
-*/
-
 //distances in m
-#define distancePerCount  0.00046f;
-#define radiansPerCount  0.0019f;//0.007699;
-unsigned long prevLeftEncoderCount = 0;
-unsigned long prevRightEncoderCount = 0;
+unsigned long countsPerRevolution = 0;
+float wheelDiameter = 0.0f;
+float wheelBase= 0.0f;
+
+float distancePerCount = 0.0f;
+float radiansPerCount = 0.0f;
+long prevLeftEncoderCount = 0;
+long prevRightEncoderCount = 0;
 float mx = 0.0f;
 float my = 0.0f;
 float mth= 0.0f;
-float wheelBase= 0.24f;
 
-#define PI_VAL 3.14159
+
+float PI_VAL = 0.0f;
 
 // the setup routine runs once when you press reset:
 void setup() {
 
-  //required ??
-  /*pinMode(encLtA, INPUT); 
-  digitalWrite(encLtA, HIGH);       // turn on pullup resistor
-  pinMode(encLtB, INPUT); 
-  digitalWrite(encLtB, HIGH);       // turn on pullup resistor
-  
-  pinMode(encRtA, INPUT); 
-  digitalWrite(encRtA, HIGH);       // turn on pullup resistor
-  pinMode(encRtB, INPUT); 
-  digitalWrite(encRtB, HIGH);       // turn on pullup resistor
-  */
+  PI_VAL = 22.0/7.0;
+  countsPerRevolution = 816;
+  wheelDiameter = 12.0/100.0;
+  wheelBase= 24.0/100.0;
+
+  distancePerCount = (PI_VAL * wheelDiameter) / (float)countsPerRevolution;
+  radiansPerCount = PI_VAL * (wheelDiameter / wheelBase) / countsPerRevolution;
+
   //debug channel
   Serial.begin(115200);
-  
+
   //motor control channel
   Serial1.begin(19200);
-  
+
+  //timer used for pos update at 10Hz
+  Timer1.initialize(100000);
+  Timer1.attachInterrupt(posUpdate); 
+
   attachInterrupt(INT0,position0,CHANGE);
   attachInterrupt(INT1,position1,CHANGE);
-  
-  //lastTime = now();  
+
 }
 
 unsigned int step_num = 100 ;
 unsigned int step_count = 0;
 
 unsigned int count=0;
-int motion = 0;
+int flag = 0;
 
 // the loop routine runs over and over again forever:
 void loop() {
-  
-  //delay(DELAY);
-/*
-  if(count % 100 == 0){
+
+  count = millis();
   noInterrupts();
-  currentPos1 = pos1;
-  currentPos0 = pos0;
-  interrupts();
 
-  dt = now() - lastTime;
-  vl = (currentPos1-lastLeft)*ticdistance*2;
-  lastLeft = currentPos1;
-  vr = (currentPos0-lastRight)*ticdistance*2;
-  lastRight = currentPos0;
-  //Serial.print(vr);
-  //Serial.print(" ");
-  //Serial.print(vl);
-  //Serial.print(" ");
-  V = (vr+vl)/2;
-  w = (vr-vl)/wheelBase;
-  //Serial.print(V);
-  //Serial.print(" ");
-  //Serial.println(w);
-  th+=w*dt/2;
-  x +=V*cos(th)*dt;
-  y +=V*sin(th)*dt;
-  th+=w*dt/2;
-  lastTime+=dt;
-  }
- */ 
- 
- unsigned long leftEncoderCount=0;
- unsigned long rightEncoderCount=0;
- unsigned long dLEC=0;
- unsigned long dREC=0;
- float dDistance=0.0f;
- float dX=0.0f;
- float dY=0.0f;
- float dth=0.0f;
- 
- if(count % 1000 == 0){
-  noInterrupts();
-  leftEncoderCount = pos1;
-  rightEncoderCount = pos0;
-  interrupts();
-  
-  dLEC = leftEncoderCount - prevLeftEncoderCount;
-  dREC = rightEncoderCount - prevRightEncoderCount;
-  
-  dDistance = 0.5f * (dLEC + dREC) * distancePerCount;
 
-  dX = dDistance * cos(mth);
-  dY = dDistance * sin(mth);
-  dth = 1.0f * (dLEC - dREC) * distancePerCount;
-  dth = dth/wheelBase;
-  
-  
-  //sad..tch tch
-  if(dth > PI_VAL || dth < -PI_VAL){
-    
-    dth = 1.0f * (dREC - dLEC) * distancePerCount;
-    dth = dth/wheelBase;
-    
-    if(dth > PI_VAL || dth < -PI_VAL){
-    Serial.println(dth);
-    dth = 0;
-    }
-  
-  }
-  mx += dX;
-  my += dY;
-  mth += dth;
-  
-  prevLeftEncoderCount = leftEncoderCount;
-  prevRightEncoderCount = rightEncoderCount;
-  
-  if(mth > PI_VAL)
-    mth = mth - (2 * PI_VAL);
-  else if(mth <= -PI_VAL)
-    mth = mth + (2 * PI_VAL);  
-  
-  
-  if(count % 1000 == 0){
-  Serial.print(mx);
-  Serial.print(" ");
-  Serial.print(my);
-  Serial.print(" ");
-  Serial.print(mth); 
-  Serial.print(" ");
-  Serial.print(leftEncoderCount);
-  Serial.print(" ");
-  Serial.println(rightEncoderCount);
-  }
-  
-  }
-  
-  //basic test
-  /*
-  delay(3000);
-  
-  Serial1.write(0xDA);
-  //Serial1.write(32);
-  Serial1.write(0x50);
-  Serial1.write(0x50);
-  
-  delay(3000);
-  
-  
-  Serial1.write(0xDA);
-  //Serial1.write(32);
-  Serial1.write(0x0);
-  Serial1.write(0x0);
-  */
-  
-  /*
-  if(count % 1000 == 0){
-  
-    Serial.print(vr);
-  Serial.print(" ");
-  Serial.print(vl);
-  Serial.print(" ");
-  
-  Serial.print(V);
-  Serial.print(" ");
-  Serial.println(w);
-  
-  Serial.println("Pose: ");
-  Serial.print(x);
-  Serial.print(" ");
-  Serial.print(y);
-  Serial.print(" ");
-  Serial.println(th); 
+  if(count % 6000 == 0){
 
-  Serial.print(currentPos0);
-  Serial.print(" ");
-  Serial.println(currentPos1);
-  
-  }*/
-  
-    count = millis();
-    
-    if(count % 2000 == 0){
-  //   Serial.println("B");
-      move_reverse(BOTH_WHEELS,0);    
+
+
+    if(!flag && (int)mx > 2){
+      
+      //make a right turn after 3 meters
+      flag = 1;
+      set_motors(GO_FORWARD,50,GO_FORWARD,0);  
+      /* 
+       Serial.println("BCBCBC");
+       SEND_CMD(194);
+       SEND_CMD(50);
+       SEND_CMD(50);
+       */
     }
-    else if(count % 1000 == 0){     
-    //  Serial.println("A");
-      move_reverse(BOTH_WHEELS,80);
+    else{
+      set_motors(GO_FORWARD,50,GO_FORWARD,50); 
+      /* 
+       Serial.println("OK");
+       SEND_CMD(218);
+       SEND_CMD(50);
+       SEND_CMD(50);
+       */
     }
- 
-  
-  
-  
+
+  }
+  else if(count % 3000 == 0){     
+    set_motors(BRAKE_LOW_3,50,BRAKE_LOW_3,50);
+    /* SEND_CMD(223);
+     SEND_CMD(50);
+     SEND_CMD(50);
+     */
+    Serial.print(mx);
+    Serial.print(" ");
+    Serial.print(my);
+    Serial.print(" ");
+    Serial.print(mth); 
+
+    Serial.print(" ");
+    Serial.print(prevLeftEncoderCount);
+    Serial.print(" ");
+    Serial.println(prevRightEncoderCount);
+
+  } 
+
+  interrupts(); 
 }
 
 void position0()
 {
   if(LT_PHASE_A == LT_PHASE_B)
-  pos0--;
+    pos0++;//pos0--;
   else
-  pos0++; 
+    pos0--;//pos0++; 
 }
 
 void position1(){
-  
+
   if(RT_PHASE_A == RT_PHASE_B)
-  pos1++;
+    pos1--;//pos1++;
   else
-  pos1--; 
+    pos1++;//pos1--; 
+
+}
+
+
+void set_motors(unsigned int leftWheelDirection,unsigned int leftWheelVelocity,unsigned int rightWheelDirection,unsigned int rightWheelVelocity){
+
+  unsigned int command_byte;
+  command_byte = SET_MOTOR_BOTH | (rightWheelDirection * 4) | leftWheelDirection;
+  SEND_CMD(command_byte);
+  SEND_CMD(leftWheelVelocity);
+  SEND_CMD(rightWheelVelocity);
+
+}
+
+void accelerate_motors(unsigned int leftWheelDirection,unsigned int leftWheelVelocity,unsigned int rightWheelDirection,unsigned int rightWheelVelocity){
+
+  unsigned int command_byte;
+  command_byte = ACCL_MOTOR_BOTH | (rightWheelDirection * 4) | leftWheelDirection;
+  SEND_CMD(command_byte);
+  SEND_CMD(leftWheelVelocity);
+  SEND_CMD(rightWheelVelocity);
 
 }
 
@@ -307,59 +201,172 @@ void move_forward(unsigned int wheel,unsigned int velocity){
 
   unsigned int command_byte;
   switch(wheel){
-    
-    case BOTH_WHEELS :command_byte = SET_MOTOR_BOTH | (GO_FORWARD * 4) | GO_FORWARD;
-                      SEND_CMD(command_byte);
-                      SEND_CMD(velocity);
-                      SEND_CMD(velocity);
-                      break;
-    
-    case LEFT_WHEEL : command_byte = SET_MOTOR_LEFT | GO_FORWARD;
-                      SEND_CMD(command_byte);
-                      SEND_CMD(velocity);
-      
-                      break;
-      
-    case RIGHT_WHEEL :command_byte = SET_MOTOR_RIGHT | GO_FORWARD;
-                      SEND_CMD(command_byte);
-                      SEND_CMD(velocity);
-                        break;
-  
-    default : break;  
-  
+
+  case BOTH_WHEELS :
+    command_byte = SET_MOTOR_BOTH | (GO_FORWARD * 4) | GO_FORWARD;
+    SEND_CMD(command_byte);
+    SEND_CMD(velocity);
+    SEND_CMD(velocity);
+    break;
+
+  case LEFT_WHEEL : 
+    command_byte = SET_MOTOR_LEFT | GO_FORWARD;
+    SEND_CMD(command_byte);
+    SEND_CMD(velocity);
+
+    break;
+
+  case RIGHT_WHEEL :
+    command_byte = SET_MOTOR_RIGHT | GO_FORWARD;
+    SEND_CMD(command_byte);
+    SEND_CMD(velocity);
+    break;
+
+  default : 
+    break;  
+
   }
-  
+
 }
 
 void move_reverse(unsigned int wheel,unsigned int velocity){
 
   unsigned int command_byte;
   switch(wheel){
-    
-    case BOTH_WHEELS :command_byte = SET_MOTOR_BOTH | (GO_REVERSE * 4) | GO_REVERSE;
-                      SEND_CMD(command_byte);
-                      SEND_CMD(velocity);
-                      SEND_CMD(velocity);
-                      break;
-    
-    case LEFT_WHEEL : command_byte = SET_MOTOR_LEFT | GO_REVERSE;
-                      SEND_CMD(command_byte);
-                      SEND_CMD(velocity);
-    
-                      break;
-      
-    case RIGHT_WHEEL : command_byte = SET_MOTOR_RIGHT | GO_REVERSE;
-                      SEND_CMD(command_byte);
-                      SEND_CMD(velocity);
-                        break;
-  
-    default : break;  
-  
+
+  case BOTH_WHEELS :
+    command_byte = SET_MOTOR_BOTH | (GO_REVERSE * 4) | GO_REVERSE;
+    SEND_CMD(command_byte);
+    SEND_CMD(velocity);
+    SEND_CMD(velocity);
+    break;
+
+  case LEFT_WHEEL : 
+    command_byte = SET_MOTOR_LEFT | GO_REVERSE;
+    SEND_CMD(command_byte);
+    SEND_CMD(velocity);
+
+    break;
+
+  case RIGHT_WHEEL : 
+    command_byte = SET_MOTOR_RIGHT | GO_REVERSE;
+    SEND_CMD(command_byte);
+    SEND_CMD(velocity);
+    break;
+
+  default : 
+    break;  
+
   }
 }
 
 void brake(unsigned int wheel,unsigned int velocity){
+  unsigned int command_byte;
+  switch(wheel){
 
- //TODO
+  case BOTH_WHEELS :
+    command_byte = SET_MOTOR_BOTH | (BRAKE_LOW_3 * 4) | BRAKE_LOW_3;
+    SEND_CMD(command_byte);
+    SEND_CMD(velocity);
+    SEND_CMD(velocity);
+    break;
+
+  case LEFT_WHEEL : 
+    command_byte = SET_MOTOR_LEFT | BRAKE_LOW_3;
+    SEND_CMD(command_byte);
+    SEND_CMD(velocity);
+
+    break;
+
+  case RIGHT_WHEEL :
+    command_byte = SET_MOTOR_RIGHT | BRAKE_LOW_3;
+    SEND_CMD(command_byte);
+    SEND_CMD(velocity);
+    break;
+
+  default : 
+    break;  
+
+  }
+
+
 }
+
+void accelerate_forward(unsigned int wheel,unsigned int velocity){
+
+  unsigned int command_byte;
+  switch(wheel){
+
+  case BOTH_WHEELS :
+    command_byte = ACCL_MOTOR_BOTH | (GO_FORWARD * 4) | GO_FORWARD;
+    SEND_CMD(command_byte);
+    SEND_CMD(velocity);
+    SEND_CMD(velocity);
+    break;
+
+  case LEFT_WHEEL : 
+    command_byte = ACCL_MOTOR_LEFT | GO_FORWARD;
+    SEND_CMD(command_byte);
+    SEND_CMD(velocity);
+
+    break;
+
+  case RIGHT_WHEEL :
+    command_byte = ACCL_MOTOR_RIGHT | GO_FORWARD;
+    SEND_CMD(command_byte);
+    SEND_CMD(velocity);
+    break;
+
+  default : 
+    break;  
+
+  }
+
+}
+
+void posUpdate()
+{
+
+  long leftEncoderCount=0;
+  long rightEncoderCount=0;
+  long dLEC=0;
+  long dREC=0;
+
+  float dDistance=0.0f;
+  float dX=0.0f;
+  float dY=0.0f;
+  float dth=0.0f;
+
+
+  leftEncoderCount = pos0;
+  rightEncoderCount = pos1;
+
+
+  dLEC = leftEncoderCount - prevLeftEncoderCount;
+  dREC = rightEncoderCount - prevRightEncoderCount;
+
+  dDistance = 0.5f * (dLEC + dREC) * distancePerCount;
+
+  dX = dDistance * (float) cos(mth);
+  dY = dDistance * (float) sin(mth);
+
+
+  dth = (float)(dLEC - dREC) * radiansPerCount;
+
+  //update measured x,y,theta
+  mx += dX;
+  my += dY;
+  mth += dth;
+
+  prevLeftEncoderCount = leftEncoderCount;
+  prevRightEncoderCount = rightEncoderCount;
+
+  if(mth > PI_VAL)
+    mth = mth - (2 * PI_VAL);
+  else if(mth <= -PI_VAL)
+    mth = mth + (2 * PI_VAL);  
+
+}
+
+
 
