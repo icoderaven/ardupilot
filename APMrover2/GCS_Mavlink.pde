@@ -1,5 +1,5 @@
 // -*- tab-width: 4; Mode: C++; c-basic-offset: 4; indent-tabs-mode: nil -*-
-
+#include <AP_PololuMotorsSerial.h>
 // use this to prevent recursion during sensor init
 static bool in_mavlink_delay;
 
@@ -235,7 +235,7 @@ static void NOINLINE send_location(mavlink_channel_t chan)
         g_gps->velocity_down()  * -100, // Z speed cm/s (+ve up)
         ahrs.yaw_sensor);
     
-    gcs_send_text_fmt(PSTR("x %f, y %f"),         odometry->get_position_x(),         odometry->get_position_y());
+    //gcs_send_text_fmt(PSTR("x %f, y %f"),         odometry->get_position_x(),         odometry->get_position_y());
     mavlink_msg_global_vision_position_estimate_send(
         chan,
         millis(),
@@ -1575,9 +1575,34 @@ void GCS_MAVLINK::handleMessage(mavlink_message_t* msg)
         }
 
     
-    
-            
-    
+    //@Rover
+    case MAVLINK_MSG_ID_SET_ROLL_PITCH_YAW_THRUST:
+    // To get the command velocity and send a command resp.
+    {
+        mavlink_set_roll_pitch_yaw_thrust_t packet;
+        mavlink_msg_set_roll_pitch_yaw_thrust_decode(msg, &packet);
+        
+        float vLeft =0.0, vRight=0.0;
+        
+        gcs_send_text_fmt(PSTR("x %f, z %f"), packet.thrust, packet.yaw);
+        
+        //First, just use the linear part
+        vLeft = vRight = 127*packet.thrust;
+        //Now, add Yaw components. In theta calc, we define theta as  R - L, thus add to R
+        vRight += 127*packet.yaw;
+        vLeft  -= 127*packet.yaw;
+        //Now assign the directions
+        unsigned int dR=BRAKE_LOW_3, dL=BRAKE_LOW_3; //Forward -> 2, Reverse ->1 , Brake ->3
+        if(vRight < 0) dR=GO_REVERSE;
+        else if(vRight >0) dR = GO_FORWARD;
+        
+        if(vLeft < 0) dL=GO_REVERSE;
+        else if(vLeft >0) dL = GO_FORWARD;
+        
+        pololuMotors->set_motors( dL, fabs(vLeft), dR, fabs(vRight));
+        last_command_time = millis();
+        break;       
+    }
     case MAVLINK_MSG_ID_PARAM_SET:
         {
             AP_Param                  *vp;

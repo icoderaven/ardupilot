@@ -4,7 +4,7 @@
 #define __AP_PololuMotorsSerial_H__
 
 //TO pololu motor controller using UART1 reserved for GPS on ardupilot board
-#define SEND_CMD(x)         hal.uartB->printf("%x",x)
+#define SEND_CMD(x)         hal.uartB->print((char)x)
 #define MOTOR_SERIAL_RATE   19200
 //wheel
 #define LEFT_WHEEL   0
