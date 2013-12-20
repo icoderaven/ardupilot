@@ -110,8 +110,9 @@ static void init_ardupilot()
 	// on the message set configured.
 	//
     // standard gps running
+    #ifndef USE_ODOMETRY
     hal.uartB->begin(115200, 128, 16);
-
+    #endif
 	cliSerial->printf_P(PSTR("\n\nInit " THISFIRMWARE
 						 "\n\nFree RAM: %u\n"),
                     memcheck_available_memory());
@@ -122,8 +123,9 @@ static void init_ardupilot()
 	
     load_parameters();
 
+    #ifndef USE_ODOMETRY
     set_control_channels();
-
+    #endif
     // after parameter load setup correct baud rate on uartA
     hal.uartA->begin(map_baudrate(g.serial0_baud, SERIAL0_BAUD));
 
@@ -179,7 +181,7 @@ static void init_ardupilot()
             //compass.get_offsets();						// load offsets to account for airframe magnetic interference
         }
 	}
-
+    #ifndef USE_ODOMETRY
 	// initialise sonar
     init_sonar();
 
@@ -187,7 +189,7 @@ static void init_ardupilot()
 	g_gps = &g_gps_driver;
     // GPS initialisation
 	g_gps->init(hal.uartB, GPS::GPS_ENGINE_AUTOMOTIVE);
-
+    #endif
     // @Rover
     odometry->init();
 
@@ -195,10 +197,17 @@ static void init_ardupilot()
 	mavlink_system.compid = 1;	//MAV_COMP_ID_IMU;   // We do not check for comp id
 	mavlink_system.type = MAV_TYPE_GROUND_ROVER;
 
+    #ifndef USE_ODOMETRY
     rc_override_active = hal.rcin->set_overrides(rc_override, 8);
 
+
 	init_rc_in();		// sets up rc channels from radio
+    #endif
+    	
+	//@Sonar
+	#ifndef USE_ODOMETRY 
 	init_rc_out();		// sets up the timer libs
+	#endif
 
 	pinMode(C_LED_PIN, OUTPUT);			// GPS status LED
 	pinMode(A_LED_PIN, OUTPUT);			// GPS status LED
@@ -272,14 +281,16 @@ static void startup_ground(void)
 	// Makes the servos wiggle
 	// step 1 = 1 wiggle
 	// -----------------------
+	#ifndef USE_ODOMETRY
 	demo_servos(1);
-
+	#endif
+	
 	//IMU ground start
 	//------------------------
     //
 
 	startup_INS_ground(false);
-
+    #ifndef USE_ODOMETRY
 	// read the radio to set trims
 	// ---------------------------
 	trim_radio();
@@ -291,7 +302,7 @@ static void startup_ground(void)
 	// Makes the servos wiggle - 3 times signals ready to fly
 	// -----------------------
 	demo_servos(3);
-
+    #endif
     hal.uartA->set_blocking_writes(false);
     hal.uartC->set_blocking_writes(false);
 

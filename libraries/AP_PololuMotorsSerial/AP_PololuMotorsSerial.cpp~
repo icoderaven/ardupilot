@@ -5,24 +5,7 @@
 extern const AP_HAL::HAL& hal;
 
 // table of user settable parameters
-const AP_Param::GroupInfo AP_InertialNav::var_info[] PROGMEM = {
-	// start numbering at 1 because 0 was previous used for body frame accel offsets
-	// @Param: TC_XY
-	// @DisplayName: Horizontal Time Constant
-	// @Description: Time constant for GPS and accel mixing. Higher TC decreases GPS impact on position estimate
-	// @Range: 0 10
-	// @Increment: 0.1
-	AP_GROUPINFO("TC_XY",   1, AP_InertialNav, _time_constant_xy, AP_INTERTIALNAV_TC_XY),
 
-	// @Param: TC_Z
-	// @DisplayName: Vertical Time Constant
-	// @Description: Time constant for baro and accel mixing. Higher TC decreases barometers impact on altitude estimate
-	// @Range: 0 10
-	// @Increment: 0.1
-	AP_GROUPINFO("TC_Z",    2, AP_InertialNav, _time_constant_z, AP_INTERTIALNAV_TC_Z),
-
-	AP_GROUPEND
-};
 
 // init - initialise library
 void AP_PololuMotorsSerial::init()
