@@ -97,52 +97,90 @@ void setup() {
 
 }
 
-unsigned int step_num = 100 ;
-unsigned int step_count = 0;
+#define NUM_WAY_POINTS 2
+float wayPoint[2][2] = {{3.0,0.0},{3.0,3.0}};
+int current_WP_index = 0;
 
-unsigned int count=0;
-int flag = 0;
+int leftDirection=0;
+int rightDirection=0;
+float target_heading=0.0;
+int flag=0;
 
 // the loop routine runs over and over again forever:
 void loop() {
 
-  count = millis();
-  noInterrupts();
-
-
-  if(count % 6000 == 0){
-
-
-
-    if(!flag && (int)mx > 2){
-      
-      //make a right turn after 3 meters
-      flag = 1;
-      set_motors(GO_FORWARD,50,GO_FORWARD,0);  
-      /* 
-       Serial.println("BCBCBC");
-       SEND_CMD(194);
-       SEND_CMD(50);
-       SEND_CMD(50);
-       */
-    }
-    else{
-      set_motors(GO_FORWARD,50,GO_FORWARD,50); 
-      /* 
-       Serial.println("OK");
-       SEND_CMD(218);
-       SEND_CMD(50);
-       SEND_CMD(50);
-       */
-    }
-
+  //1 move forward
+  set_motors(GO_FORWARD,40,GO_FORWARD,40);
+  
+  while(1){
+  
+  print_pose();  
+  //noInterrupts();
+  if(compare_float(mx,2.0) >= 0){
+    
+    set_motors(BRAKE_LOW_3,50,BRAKE_LOW_3,50);   
+    
+    Serial.println("Reached 3.0 X");
+    print_pose();
+    
+    //interrupts();
+    break;
+  
   }
-  else if(count % 3000 == 0){     
+  //interrupts();
+  }
+  
+  delay(1000);
+  
+  //rotate 90
+  set_motors(GO_FORWARD,20,GO_REVERSE,20);
+  
+  while(1){
+    print_pose(); 
+  //noInterrupts();
+  if(compare_float(mth,1.67) >= 0){
+    set_motors(BRAKE_LOW_3,40,BRAKE_LOW_3,40);
+    print_pose();
+    Serial.println("Turned 90 degrees");
+    //interrupts();
+    break;
+  
+  }
+  //interrupts(); 
+  }
+  
+  delay(1000);
+  
+  //y direction
+  set_motors(GO_FORWARD,40,GO_FORWARD,40);
+  
+  while(1){
+  print_pose(); 
+  //noInterrupts();
+  if(compare_float(my,1.0) >= 0){
+    
     set_motors(BRAKE_LOW_3,50,BRAKE_LOW_3,50);
-    /* SEND_CMD(223);
-     SEND_CMD(50);
-     SEND_CMD(50);
-     */
+    print_pose();
+    Serial.println("Reached 2.0 Y");
+    
+    //interrupts();
+    break;
+  
+  }
+  //interrupts();
+  }
+  
+  print_pose();
+  Serial.println("Done");
+  while(1);
+  
+  
+  
+}
+
+
+void print_pose(){
+
     Serial.print(mx);
     Serial.print(" ");
     Serial.print(my);
@@ -154,10 +192,31 @@ void loop() {
     Serial.print(" ");
     Serial.println(prevRightEncoderCount);
 
-  } 
 
-  interrupts(); 
 }
+//returns 1 ,if a > b
+//       -1 ,if a < b
+//        0 , if a almost equal to b
+int compare_float(float a,float b){
+  
+  long a_val = (long)(a * 1000.0);
+  long b_val = (long)(b * 1000.0);
+
+  /*Serial.print(a_val);
+  Serial.print(" ");
+  Serial.println(b_val);
+  */
+  
+  if(abs(a_val - b_val) <= 10)
+      return 0;
+      
+  if(a_val > b_val)
+      return 1;
+  else
+      return -1;  
+
+}
+
 
 void position0()
 {
