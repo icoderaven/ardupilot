@@ -94,6 +94,7 @@ version 2.1 of the License, or (at your option) any later version.
 
 #include <AP_Declination.h> // ArduPilot Mega Declination Helper Library
 #include <AP_Odometry.h> // @Rover
+#include <AP_PololuMotorsSerial.h> // @Rover
 
 AP_HAL::BetterStream* cliSerial;
 
@@ -170,6 +171,9 @@ static GPS         *g_gps;
 // @Rover
 static AP_Odometry _odometry;
 static AP_Odometry *odometry = &_odometry;
+
+static AP_PololuMotorsSerial _pololuMotors;
+static AP_PololuMotorsSerial *pololuMotors = &_pololuMotors;
 // flight modes convenience array
 static AP_Int8		*modes = &g.mode1;
 

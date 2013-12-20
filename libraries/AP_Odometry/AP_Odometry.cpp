@@ -86,7 +86,7 @@ void AP_Odometry::update_pose()
 
 	dX = dDistance * (float) cos(mth);
 	dY = dDistance * (float) sin(mth);
-	dth = (float)(dLEC - dREC) * radiansPerCount;
+	dth = (float)(dREC - dLEC) * radiansPerCount;
 
 	//update measured x,y,theta
 	mx += dX;

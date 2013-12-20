@@ -4,7 +4,7 @@
 #define __AP_PololuMotorsSerial_H__
 
 //TO pololu motor controller using UART1 reserved for GPS on ardupilot board
-#define SEND_CMD(x)         Serial1.write(x)
+#define SEND_CMD(x)         hal.uartB->printf("%x",x)
 #define MOTOR_SERIAL_RATE   19200
 //wheel
 #define LEFT_WHEEL   0
@@ -37,10 +37,10 @@ class AP_PololuMotorsSerial
 public:
 
     // Constructor, what is AHRS ??
-    AP_PololuMotorsSerial(AP_AHRS* ahrs):
-        _ahrs(ahrs),
+    AP_PololuMotorsSerial()
+        
         {
-            AP_Param::setup_object_defaults(this, var_info);
+            //AP_Param::setup_object_defaults(this, var_info);
         }
 
     // Initialisation
@@ -50,33 +50,8 @@ public:
     void move_forward(unsigned int wheel,unsigned int velocity);
     void move_reverse(unsigned int wheel,unsigned int velocity);
     void brake(unsigned int wheel,unsigned int velocity);
-    void accelerate_forward(unsigned int wheel,unsigned int velocity)
+    void accelerate_forward(unsigned int wheel,unsigned int velocity);
 
-
-    // class level parameters , check ??
-    static const struct AP_Param::GroupInfo var_info[];
-
-protected:
-
-
-    AP_AHRS*                _ahrs;                      // pointer to ahrs object
-    //Count variables
-    volatile long pos0; //left motor
-    volatile long pos1; //right motor
-
-    //distances in m
-    unsigned long countsPerRevolution;
-    float wheelDiameter;
-    float wheelBase;
-
-    float distancePerCount;
-    float radiansPerCount;
-    long prevLeftEncoderCount;
-    long prevRightEncoderCount;
-    float mx;
-    float my;
-    float mth;
-    float PI_VAL;
 
 
 };

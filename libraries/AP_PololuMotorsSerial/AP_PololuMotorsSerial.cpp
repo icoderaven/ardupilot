@@ -11,7 +11,7 @@ extern const AP_HAL::HAL& hal;
 void AP_PololuMotorsSerial::init()
 {
   //motor control channel
-  Serial1.begin(MOTOR_SERIAL_RATE);
+  //Serial1.begin(MOTOR_SERIAL_RATE);
 }
 
 void AP_PololuMotorsSerial::set_motors(unsigned int leftWheelDirection,unsigned int leftWheelVelocity,unsigned int rightWheelDirection,unsigned int rightWheelVelocity){
