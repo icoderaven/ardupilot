@@ -235,6 +235,7 @@ static void NOINLINE send_location(mavlink_channel_t chan)
         g_gps->velocity_down()  * -100, // Z speed cm/s (+ve up)
         ahrs.yaw_sensor);
     
+    gcs_send_text_fmt(PSTR("x %f, y %f"),         odometry->get_position_x(),         odometry->get_position_y());
     mavlink_msg_global_vision_position_estimate_send(
         chan,
         millis(),
@@ -1573,7 +1574,10 @@ void GCS_MAVLINK::handleMessage(mavlink_message_t* msg)
             break;
         }
 
-
+    
+    
+            
+    
     case MAVLINK_MSG_ID_PARAM_SET:
         {
             AP_Param                  *vp;

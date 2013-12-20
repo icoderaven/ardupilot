@@ -169,7 +169,7 @@ static GPS         *g_gps;
 
 // @Rover
 static AP_Odometry _odometry;
-static AP_Odometry *odometry=&_odometry;
+static AP_Odometry *odometry = &_odometry;
 // flight modes convenience array
 static AP_Int8		*modes = &g.mode1;
 
@@ -550,19 +550,19 @@ static float 			load;
   microseconds)
  */
 static const AP_Scheduler::Task scheduler_tasks[] PROGMEM = {
-    { update_GPS,             5,   2500 },
-    { navigate,               5,   1600 },
+    //{ update_GPS,             5,   2500 },
+    //{ navigate,               5,   1600 },
     { update_compass,         5,   2000 },
-    { update_commands,        5,   1000 },
+    //{ update_commands,        5,   1000 },
     { update_logging,         5,   1000 },
     { read_battery,           5,   1000 },
-    { read_receiver_rssi,     5,   1000 },
-    { read_trim_switch,       5,   1000 },
-    { read_control_switch,   15,   1000 },
-    { update_events,         15,   1000 },
+    //{ read_receiver_rssi,     5,   1000 },
+    //{ read_trim_switch,       5,   1000 },
+    //{ read_control_switch,   15,   1000 },
+    //{ update_events,         15,   1000 },
     { check_usb_mux,         15,   1000 },
-    { mount_update,           1,    500 },
-    { failsafe_check,         5,    500 },
+    //{ mount_update,           1,    500 },
+    //{ failsafe_check,         5,    500 },
     { compass_accumulate,     1,    900 },
     { one_second_loop,       50,   3000 },
     { update_odometry,        1,   2000 } //@Rover
@@ -633,7 +633,10 @@ static void fast_loop()
 
 	// Read radio
 	// ----------
+	//@Rover
+	#ifndef USE_ODOMETRY
 	read_radio();
+	#endif
 
     // try to send any deferred messages if the serial port now has
     // some space available
@@ -659,11 +662,16 @@ static void fast_loop()
 
 	// custom code/exceptions for flight modes
 	// ---------------------------------------
+	#ifndef USE_ODOMETRY
 	update_current_mode();
+	#endif
 
 	// write out the servo PWM values
 	// ------------------------------
+	//@Rover
+	#ifndef USE_ODOMETRY
 	set_servos();
+	#endif
 
     gcs_update();
     gcs_data_stream_send();
@@ -742,11 +750,13 @@ static void one_second_loop(void)
     // allow orientation change at runtime to aid config
     ahrs.set_orientation();
 
+    #ifndef USE_ODOMETRY
     set_control_channels();
 
     // cope with changes to aux functions
     update_aux_servo_function(&g.rc_2, &g.rc_4, &g.rc_5, &g.rc_6, &g.rc_7, &g.rc_8);
     enable_aux_servos();
+    #endif
 
 #if MOUNT == ENABLED
     camera_mount.update_mount_type();

@@ -124,7 +124,7 @@ void DataFlash_APM2::Init(void)
         // 16 Mbit
         df_NumPages = 4095;
     }
-
+    hal.console->printf("density_code %d pages %d, size %d\n", density_code, df_NumPages, df_PageSize);
     //serialDebug("density_code %d pages %d, size %d\n", density_code, df_NumPages, df_PageSize);
 }
 
