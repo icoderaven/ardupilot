@@ -15,13 +15,13 @@ AP_HAL::Proc AVRGPIO::_interrupt_1 = NULL;
 AP_HAL::Proc AVRGPIO::_interrupt_6 = NULL;
 
 // @Rover
-SIGNAL(INT0_vect) {
+SIGNAL(INT4_vect) {
     if (AVRGPIO::_interrupt_0) {
         AVRGPIO::_interrupt_0();
     }
 }
 
-SIGNAL(INT1_vect) {
+SIGNAL(INT5_vect) {
     if (AVRGPIO::_interrupt_1) {
         AVRGPIO::_interrupt_1();
     }
