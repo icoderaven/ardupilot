@@ -174,6 +174,8 @@ static AP_Odometry *odometry = &_odometry;
 
 static AP_PololuMotorsSerial _pololuMotors;
 static AP_PololuMotorsSerial *pololuMotors = &_pololuMotors;
+
+static unsigned long last_command_time = 0;
 // flight modes convenience array
 static AP_Int8		*modes = &g.mode1;
 
@@ -569,7 +571,8 @@ static const AP_Scheduler::Task scheduler_tasks[] PROGMEM = {
     { failsafe_check,         5,    500 },
     { compass_accumulate,     1,    900 },
     { one_second_loop,       50,   3000 },
-    { update_odometry,        1,   2000 } //@Rover
+    { update_odometry,        1,   2000 }, //@Rover
+    { motor_failsafe,         20,   1000 }
 };
 
 
@@ -836,6 +839,14 @@ static void update_odometry(void){
 
     odometry->update_pose();
     
+}
+
+static void motor_failsafe(void){
+    if(millis() - last_command_time > 1000)
+    {
+        //Brake the motors
+        pololuMotors->set_motors( 3, 127, 3, 127); //Brake is 3
+    }
 }
 
 static void update_current_mode(void)
