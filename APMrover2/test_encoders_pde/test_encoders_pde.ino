@@ -110,7 +110,7 @@ int flag=0;
 void loop() {
 
   //1 move forward
-  set_motors(GO_FORWARD,40,GO_FORWARD,40);
+  set_motors(GO_FORWARD,30,GO_FORWARD,30);
   
   while(1){
   
@@ -133,12 +133,12 @@ void loop() {
   delay(1000);
   
   //rotate 90
-  set_motors(GO_FORWARD,20,GO_REVERSE,20);
+  set_motors(GO_FORWARD,30,GO_REVERSE,30);
   
   while(1){
     print_pose(); 
   //noInterrupts();
-  if(compare_float(mth,1.67) >= 0){
+  if(compare_float(mth,1.57) >= 0){
     set_motors(BRAKE_LOW_3,40,BRAKE_LOW_3,40);
     print_pose();
     Serial.println("Turned 90 degrees");
@@ -152,7 +152,7 @@ void loop() {
   delay(1000);
   
   //y direction
-  set_motors(GO_FORWARD,40,GO_FORWARD,40);
+  set_motors(GO_FORWARD,30,GO_FORWARD,30);
   
   while(1){
   print_pose(); 
@@ -177,7 +177,6 @@ void loop() {
   
   
 }
-
 
 void print_pose(){
 
