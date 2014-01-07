@@ -181,12 +181,17 @@ void AP_PololuMotorsSerial::accelerate_forward(unsigned int wheel,unsigned int v
   }
 }
 
-void AP_PololuMotorsSerial::set_target_velocity(unsigned int left,unsigned int leftDirection,unsigned right,unsigned int rightDirection){
+void AP_PololuMotorsSerial::set_target_velocity(unsigned int leftDirection,unsigned int left,unsigned rightDirection,unsigned int right){
 
     //get
     if(!_sem_take(5))
         return;
 
+    
+    running = true;
+
+    //driveLeft =0.0;
+    //driveRight=0.0;
     targetLeftVelocity = left;
     targetRightVelocity = right;
 
@@ -218,14 +223,29 @@ void AP_PololuMotorsSerial::god_speed(){
     float curLeft;
     float curRight;
 
-    long curMillis;
-    long dMillis;
+    unsigned long curMillis;
+    unsigned long dMillis;
 
     unsigned int leftDir=GO_FORWARD;
     unsigned int rightDir=GO_FORWARD;
     
+    if(!running)
+        return;
+
+    if(prevMillis == 0){
+        prevMillis = hal.scheduler->millis();
+        return;
+    }    
     curMillis = hal.scheduler->millis();
+
+    
+
     dMillis = curMillis - prevMillis;
+
+    if(dMillis > 1000){
+        prevMillis = hal.scheduler->millis();
+        return;
+    }
 
     noInterrupts();
     leftEncoderDiff = pos0 - prevLeftEncoderCount;
@@ -233,16 +253,16 @@ void AP_PololuMotorsSerial::god_speed(){
     interrupts();
 
     //get curr velocity
-    curLeft = (leftEncoderDiff * 1.0)/dMillis; 
-    curRight = (rightEncoderDiff * 1.0)/dMillis;     
+    curLeft = leftEncoderDiff / dMillis*1000.0 ; 
+    curRight = rightEncoderDiff / dMillis*1000.0 ;     
 
    
      //get
     if(!_sem_take(5))
         return;
     
-     dVLeft = kp * (targetLeftVelocity * targetLeftDirection - curLeft);
-     dVRight = kp * (targetRightVelocity * targetRightDirection - curRight);
+     dVLeft = kp * (targetLeftVelocity * targetLeftDirection * 7614.0/127.0  - curLeft);
+     dVRight = kp * (targetRightVelocity * targetRightDirection* 7614.0/127.0 - curRight);
 
     if(targetLeftDirection == -1)
         leftDir=GO_REVERSE;
@@ -257,10 +277,17 @@ void AP_PololuMotorsSerial::god_speed(){
     driveRight += dVRight;
    
     set_motors(leftDir,driveLeft,rightDir,driveRight); 
-    
+    hal.console->printf("ldiff %d rdiff %d dvleft %f dvright %f dt %d\n",leftEncoderDiff,rightEncoderDiff,dVLeft,dVRight,dMillis);
+
     prevMillis = curMillis;
     
 }
 
+void AP_PololuMotorsSerial::shut_down(){
 
+    hal.console->printf("Shutdown\n");
+    running = false;
+    set_motors(BRAKE_LOW_3,127,BRAKE_LOW_3,127);
+
+}
 

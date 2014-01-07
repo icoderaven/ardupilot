@@ -55,6 +55,7 @@ public:
     void god_speed();
     void set_target_velocity(unsigned int leftWheelDirection,unsigned int leftWheelVelocity,unsigned int rightWheelDirection,unsigned int     rightWheelVelocity);
     bool _sem_take(uint8_t timeout);
+    void shut_down();
 
 private :
     long prevLeftEncoderCount=0;
@@ -71,7 +72,8 @@ private :
 
     static AP_HAL_AVR::AVRSemaphore _motor_sem;
     
-    float kp=0.5;
+    float kp=64.0/7614.0;
+    bool running=false;
 
 
 };

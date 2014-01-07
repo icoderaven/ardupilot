@@ -129,8 +129,8 @@ unsigned int count = period;
 unsigned int currentLeft=0;
 unsigned int currentRight=0;
 
-unsigned int left_vel=51;
-unsigned int right_vel=50;
+unsigned int left_vel=127;
+unsigned int right_vel=127;
 
 // the loop routine runs over and over again forever:
 void loop() {
@@ -159,7 +159,7 @@ void loop() {
     while(1);
   */
   
-set_motors(GO_FORWARD,left_vel,GO_REVERSE,right_vel);
+set_motors(GO_FORWARD,left_vel,GO_FORWARD,right_vel);
 
    
   while(1){ 
@@ -223,7 +223,7 @@ delay(100);
     
     //move_forward(LEFT_WHEEL,30);
     //move_reverse(RIGHT_WHEEL,30);  
-    set_motors(GO_FORWARD,left_vel,GO_REVERSE,right_vel);
+    set_motors(GO_FORWARD,left_vel,GO_FORWARD,right_vel);
   
   }
   

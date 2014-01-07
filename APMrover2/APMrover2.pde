@@ -576,7 +576,7 @@ static const AP_Scheduler::Task scheduler_tasks[] PROGMEM = {
     { compass_accumulate,     1,    900 },
     { one_second_loop,       50,   3000 },
     { update_odometry,        1,   2000 }, //@Rover
-    { motor_control,          5,   4000 }, //@Rover
+    { motor_control,          3,   2000 }, //@Rover
     { motor_failsafe,         20,   1000 }
 };
 
@@ -856,7 +856,7 @@ static void motor_failsafe(void){
     if(millis() - last_command_time > 1000)
     {
         //Brake the motors
-        pololuMotors->set_motors( 3, 127, 3, 127); //Brake is 3
+        pololuMotors->shut_down();       
     }
 }
 
