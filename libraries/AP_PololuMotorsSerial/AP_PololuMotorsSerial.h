@@ -52,6 +52,26 @@ public:
     void brake(unsigned int wheel,unsigned int velocity);
     void accelerate_forward(unsigned int wheel,unsigned int velocity);
 
+    void god_speed();
+    void set_target_velocity(unsigned int leftWheelDirection,unsigned int leftWheelVelocity,unsigned int rightWheelDirection,unsigned int     rightWheelVelocity);
+    bool _sem_take(uint8_t timeout);
+
+private :
+    long prevLeftEncoderCount=0;
+    long prevRightEncoderCount=0;
+    unsigned long prevMillis=0;
+    long targetLeftVelocity=0;
+    long targetRightVelocity=0;
+    int targetLeftDirection=1;
+    int targetRightDirection=1;
+
+    //last velocity sent to motors
+    unsigned int driveLeft=0;
+    unsigned int driveRight=0;
+
+    static AP_HAL_AVR::AVRSemaphore _motor_sem;
+    
+    float kp=0.5;
 
 
 };

@@ -8,8 +8,8 @@
 
 extern const AP_HAL::HAL& hal;
 
-static volatile long pos0=0;
-static volatile long pos1=0;
+extern volatile long pos0;
+extern volatile long pos1;
 
 static void position0();
 static void position1();
@@ -49,7 +49,7 @@ void AP_Odometry::init()
 	PI_VAL = 3.14159;
 	countsPerRevolution = 816;
 	wheelDiameter = 0.12;
-	wheelBase= 0.24;
+	wheelBase= 0.245;
 
 	distancePerCount = (PI_VAL * wheelDiameter) / (float)countsPerRevolution;
 	radiansPerCount = PI_VAL * (wheelDiameter / wheelBase) / countsPerRevolution;
