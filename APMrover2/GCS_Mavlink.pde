@@ -1599,7 +1599,7 @@ void GCS_MAVLINK::handleMessage(mavlink_message_t* msg)
         if(vLeft < 0) dL=GO_REVERSE;
         else if(vLeft >0) dL = GO_FORWARD;
         
-        pololuMotors->set_motors( dL, fabs(vLeft), dR, fabs(vRight));
+        pololuMotors->set_target_velocity( dL, fabs(vLeft), dR, fabs(vRight));
         last_command_time = millis();
         break;       
     }

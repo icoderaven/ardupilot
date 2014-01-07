@@ -169,11 +169,15 @@ DataFlash_Empty DataFlash;
 static GPS         *g_gps;
 
 // @Rover
+
 static AP_Odometry _odometry;
 static AP_Odometry *odometry = &_odometry;
 
 static AP_PololuMotorsSerial _pololuMotors;
 static AP_PololuMotorsSerial *pololuMotors = &_pololuMotors;
+
+volatile long pos0=0;
+volatile long pos1=0;
 
 static unsigned long last_command_time = 0;
 // flight modes convenience array
@@ -572,6 +576,7 @@ static const AP_Scheduler::Task scheduler_tasks[] PROGMEM = {
     { compass_accumulate,     1,    900 },
     { one_second_loop,       50,   3000 },
     { update_odometry,        1,   2000 }, //@Rover
+    { motor_control,          5,   4000 }, //@Rover
     { motor_failsafe,         20,   1000 }
 };
 
@@ -839,6 +844,12 @@ static void update_odometry(void){
 
     odometry->update_pose();
     
+}
+
+// @Rover
+static void motor_control(){
+
+    pololuMotors->god_speed();
 }
 
 static void motor_failsafe(void){

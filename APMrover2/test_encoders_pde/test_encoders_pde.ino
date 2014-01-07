@@ -45,6 +45,10 @@
 #define SET_MOTOR_BOTH      0xD0
 #define ACCL_MOTOR_BOTH     0xE0
 
+#define GET_CURRENT_LEFT    0x8D
+#define GET_CURRENT_RIGHT   0x8E
+#define GET_CURRENT_BOTH    0x8F
+
 //Direction Bits
 #define BRAKE_LOW_0         0x00
 #define GO_REVERSE          0x01
@@ -54,6 +58,8 @@
 //Count variables
 volatile long pos0 = 0;
 volatile long pos1 = 0;
+volatile long stateLeftA=0;
+volatile long stateRightA=0;
 
 //distances in m
 unsigned long countsPerRevolution = 0;
@@ -89,9 +95,20 @@ void setup() {
   Serial1.begin(19200);
 
   //timer used for pos update at 10Hz
-  Timer1.initialize(100000);
+  Timer1.initialize(1000000);
   Timer1.attachInterrupt(posUpdate); 
 
+  pinMode(encLtA, INPUT);           // set pin to input
+  pinMode(encLtB, INPUT);
+  pinMode(encRtA, INPUT);
+  pinMode(encRtB, INPUT);            // set pin to input
+  digitalWrite(encLtA, HIGH);       // turn on pullup resistors
+  digitalWrite(encRtA, HIGH);       // turn on pullup resistors 
+  
+  //Initial interrupt pin states
+  stateLeftA = LT_PHASE_A;
+  stateRightA = RT_PHASE_A;
+  
   attachInterrupt(INT0,position0,CHANGE);
   attachInterrupt(INT1,position1,CHANGE);
 
@@ -106,13 +123,112 @@ int rightDirection=0;
 float target_heading=0.0;
 int flag=0;
 
+unsigned long start=0;
+unsigned int period = 5;//seconds
+unsigned int count = period;
+unsigned int currentLeft=0;
+unsigned int currentRight=0;
+
+unsigned int left_vel=51;
+unsigned int right_vel=50;
+
 // the loop routine runs over and over again forever:
 void loop() {
-
-  //1 move forward
-  set_motors(GO_FORWARD,30,GO_FORWARD,30);
   
-  while(1){
+  unsigned int num_bytes=0;
+  unsigned int count1=0;
+  unsigned int byteval=0;
+  //1 move forward
+  //move_forward(LEFT_WHEEL,30);
+  //move_reverse(RIGHT_WHEEL,30);
+  /*set_generic_command(0x13,3);
+  set_generic_command(0x14,3);
+  set_generic_command(0x15,0);
+  set_generic_command(0x16,0);
+  
+  
+  set_generic_command(0x7f,0x7f);
+   while((num_bytes=Serial1.available()) > 0) {      
+      Serial.print(" Num bytes : ");
+      Serial.print(num_bytes,DEC); 
+      byteval = Serial1.read();
+      Serial.print(" X = ");
+     Serial.print(byteval,DEC);
+    }
+    
+    while(1);
+  */
+  
+set_motors(GO_FORWARD,left_vel,GO_REVERSE,right_vel);
+
+   
+  while(1){ 
+    
+  start = millis();
+  
+  if(start / 1000 == count){
+    
+    count = count + period;
+    
+    //get motor current val
+    //SEND_CMD(GET_CURRENT_BOTH);
+    /*delay(100);        
+    while((num_bytes=Serial1.available()) > 0) {      
+      //Serial.print(" Num bytes : ");
+      //Serial.print(num_bytes,DEC); 
+      currentLeft = Serial1.read();
+      //Serial.print(" X = ");
+     //Serial.print(currentLeft,DEC);
+    }
+
+delay(100);
+    Serial.println("AAAAAAA");
+    SEND_CMD(GET_CURRENT_BOTH);
+    delay(100);        
+    while((num_bytes=Serial1.available()) > 0) {      
+      Serial.print(" Num bytes : ");
+      Serial.print(num_bytes,DEC); 
+      currentLeft = Serial1.read();
+      Serial.print(" X = ");
+     Serial.print(currentLeft,DEC);
+    }
+
+//    SEND_CMD(GET_CURRENT_RIGHT);
+//     delay(100);        
+//    while((num_bytes=Serial1.available()) > 0){        
+//      Serial.print(" Num bytes R : ");
+//      Serial.print(num_bytes,DEC);          
+//      currentRight = Serial1.read();
+//      Serial.print(" R : ");
+//     Serial.print(currentRight,DEC);
+//    }
+     
+     Serial.println();
+     
+     
+delay(100);
+      */
+    //set_motors(BRAKE_LOW_3,50,BRAKE_LOW_3,50);
+    //delay(1000);
+    
+    //while(count1++ < 10000);
+    //count1 =0;
+    
+    noInterrupts();
+    Serial.print("T : ");
+    Serial.println(start); 
+    print_pose();
+  
+    interrupts();
+    
+    //move_forward(LEFT_WHEEL,30);
+    //move_reverse(RIGHT_WHEEL,30);  
+    set_motors(GO_FORWARD,left_vel,GO_REVERSE,right_vel);
+  
+  }
+  
+  }
+  /*while(1){
   
   print_pose();  
   //noInterrupts();
@@ -174,7 +290,7 @@ void loop() {
   Serial.println("Done");
   while(1);
   
-  
+  */
   
 }
 
@@ -189,7 +305,9 @@ void print_pose(){
     Serial.print(" ");
     Serial.print(prevLeftEncoderCount);
     Serial.print(" ");
-    Serial.println(prevRightEncoderCount);
+    Serial.print(prevRightEncoderCount);
+    Serial.print(" ");
+    Serial.println(prevLeftEncoderCount - prevRightEncoderCount);
 
 
 }
@@ -219,6 +337,8 @@ int compare_float(float a,float b){
 
 void position0()
 {
+  //stateLeftA = !stateLeftA;
+  
   if(LT_PHASE_A == LT_PHASE_B)
     pos0++;//pos0--;
   else
@@ -227,6 +347,8 @@ void position0()
 
 void position1(){
 
+  //stateRightA = !stateRightA;
+  
   if(RT_PHASE_A == RT_PHASE_B)
     pos1--;//pos1++;
   else
@@ -254,6 +376,16 @@ void accelerate_motors(unsigned int leftWheelDirection,unsigned int leftWheelVel
   SEND_CMD(rightWheelVelocity);
 
 }
+
+void set_generic_command(unsigned int cmd,unsigned int val){
+ 
+   SEND_CMD(0xAF);
+   SEND_CMD(cmd);
+   SEND_CMD(val);
+   SEND_CMD(0x55);
+   SEND_CMD(0x2A);   
+ 
+ }
 
 void move_forward(unsigned int wheel,unsigned int velocity){
 
