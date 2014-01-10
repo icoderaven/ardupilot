@@ -1589,8 +1589,15 @@ void GCS_MAVLINK::handleMessage(mavlink_message_t* msg)
         //First, just use the linear part
         vLeft = vRight = 127*packet.thrust;
         //Now, add Yaw components. In theta calc, we define theta as  R - L, thus add to R
-        vRight += 127*packet.yaw;
-        vLeft  -= 127*packet.yaw;
+        vRight += 63*packet.yaw;
+        vLeft  -= 63*packet.yaw;
+
+        if(vRight > 127)
+            vRight = 127;
+
+        if(vLeft > 127)
+            vLeft = 127;
+
         //Now assign the directions
         unsigned int dR=BRAKE_LOW_3, dL=BRAKE_LOW_3; //Forward -> 2, Reverse ->1 , Brake ->3
         if(vRight < 0) dR=GO_REVERSE;
@@ -1599,7 +1606,7 @@ void GCS_MAVLINK::handleMessage(mavlink_message_t* msg)
         if(vLeft < 0) dL=GO_REVERSE;
         else if(vLeft >0) dL = GO_FORWARD;
         
-        pololuMotors->set_target_velocity( dL, fabs(vLeft), dR, fabs(vRight));
+        pololuMotors->set_motors( dL, fabs(vLeft), dR, fabs(vRight));
         last_command_time = millis();
         break;       
     }

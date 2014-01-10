@@ -48,13 +48,12 @@ void AP_Odometry::init()
     
 	PI_VAL = 3.14159;
 	countsPerRevolution = 816;
-	wheelDiameter = 0.12;
-	wheelBase= 0.245;
+	wheelDiameter = 0.1242;
+	wheelBase= 0.235;
 
 	distancePerCount = (PI_VAL * wheelDiameter) / (float)countsPerRevolution;
 	radiansPerCount = PI_VAL * (wheelDiameter / wheelBase) / countsPerRevolution;
 
-    //void (*p0)() = position0;
     hal.gpio->pinMode(encLtA,GPIO_INPUT);
     hal.gpio->pinMode(encRtA,GPIO_INPUT);
 

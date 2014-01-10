@@ -95,7 +95,7 @@ void setup() {
   Serial1.begin(19200);
 
   //timer used for pos update at 10Hz
-  Timer1.initialize(1000000);
+  Timer1.initialize(100000);
   Timer1.attachInterrupt(posUpdate); 
 
   pinMode(encLtA, INPUT);           // set pin to input
@@ -129,8 +129,8 @@ unsigned int count = period;
 unsigned int currentLeft=0;
 unsigned int currentRight=0;
 
-unsigned int left_vel=127;
-unsigned int right_vel=127;
+unsigned int left_vel=30;
+unsigned int right_vel=30;
 
 // the loop routine runs over and over again forever:
 void loop() {
@@ -159,7 +159,9 @@ void loop() {
     while(1);
   */
   
-set_motors(GO_FORWARD,left_vel,GO_FORWARD,right_vel);
+accelerate_motors(GO_FORWARD,left_vel,GO_FORWARD,right_vel);
+
+while(1){}
 
    
   while(1){ 

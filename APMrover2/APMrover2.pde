@@ -576,7 +576,7 @@ static const AP_Scheduler::Task scheduler_tasks[] PROGMEM = {
     { compass_accumulate,     1,    900 },
     { one_second_loop,       50,   3000 },
     { update_odometry,        1,   2000 }, //@Rover
-    { motor_control,          3,   2000 }, //@Rover
+    //{ motor_control,          3,   2000 }, //@Rover
     { motor_failsafe,         20,   1000 }
 };
 
