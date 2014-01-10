@@ -661,7 +661,8 @@ static void fast_loop()
 
 	ahrs.update();
 
-    read_sonars();
+	//@Rover
+    //read_sonars();
 
 	// uses the yaw from the DCM to give more accurate turns
 	calc_bearing_error();

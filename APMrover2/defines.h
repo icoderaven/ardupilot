@@ -99,6 +99,10 @@ enum ap_message {
     MSG_RADIO_OUT,
     MSG_RADIO_IN,
     MSG_RAW_IMU1,
+    //@Rover{
+    MSG_SCALED_IMU,
+    MSG_GLOBAL_VISION_POSITION_ESTIMATE,
+    //@Rover}
     MSG_RAW_IMU3,
     MSG_GPS_RAW,
     MSG_SERVO_OUT,
