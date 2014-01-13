@@ -3,6 +3,9 @@
 #ifndef __AP_ODOMETRY_H__
 #define __AP_ODOMETRY_H__
 
+#include "../../APMrover2/APM_Config.h"
+#include <AP_AHRS.h>
+#include <AP_AHRS_DCM.h>
 //Interrupts used 
 #define INT0 0
 #define INT1 1
@@ -76,6 +79,10 @@ protected:
     float my;
     float mth;
     float PI_VAL;
+
+    #ifdef USE_AHRS_YAW_FOR_ODOM
+    float prevYaw;
+    #endif
 
     Vector3f pose;
 

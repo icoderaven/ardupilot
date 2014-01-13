@@ -4,3 +4,4 @@
 // their default values, place the appropriate #define statements here.
 
 #define USE_ODOMETRY ENABLED
+#define USE_AHRS_YAW_FOR_ODOM ENABLED

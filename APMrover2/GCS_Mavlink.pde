@@ -1584,16 +1584,16 @@ void GCS_MAVLINK::handleMessage(mavlink_message_t* msg) {
 		gcs_send_text_fmt(PSTR("x %f, z %f"), packet.thrust, packet.yaw);
 
 		//First, just use the linear part
-		vLeft = vRight = 127 * packet.thrust;
+		vLeft = vRight = MAX_SPEED /*127*/ * packet.thrust;
 		//Now, add Yaw components. In theta calc, we define theta as  R - L, thus add to R
-		vRight += 63 * packet.yaw;
-		vLeft -= 63 * packet.yaw;
+		vRight += MAX_SPEED_HALF /*63*/ * packet.yaw;
+		vLeft -=  MAX_SPEED_HALF /*63*/ * packet.yaw;
 
-		if (vRight > 127)
-			vRight = 127;
+		if (vRight > MAX_SPEED /*127*/)
+			vRight = MAX_SPEED /*127*/;
 
-		if (vLeft > 127)
-			vLeft = 127;
+		if (vLeft > MAX_SPEED /*127*/)
+			vLeft = MAX_SPEED /*127*/;
 
         /*
 		//Now assign the directions
@@ -1615,7 +1615,9 @@ void GCS_MAVLINK::handleMessage(mavlink_message_t* msg) {
         //For roboclaw speed is in units of encoder quadrature counts per second
         // Max value defined is 17000, but DO NOT USE 17000 as it may damage the motors
         // For running, use RANGE as +/- 12650 
-        roboclaw->SpeedM1M2(ADDRESS,vLeft,vRight);
+        roboclaw->SpeedM1(ADDRESS,vLeft);
+        roboclaw->SpeedM2(ADDRESS,vRight);
+
 
 		last_command_time = millis();
 		break;

@@ -7,6 +7,7 @@
 #include <AP_Odometry.h>
 
 extern const AP_HAL::HAL& hal;
+extern const AP_AHRS_DCM ahrs;
 
 extern volatile long pos0;
 extern volatile long pos1;
@@ -43,6 +44,10 @@ void AP_Odometry::init()
     mx=0.0;
     my=0.0;
     mth=0.0;
+
+    #ifdef USE_AHRS_YAW_FOR_ODOM
+    prevYaw = ahrs.yaw;
+    #endif
 
     pose = Vector3f(0,0,0);
     
@@ -85,7 +90,14 @@ void AP_Odometry::update_pose()
 
 	dX = dDistance * (float) cos(mth);
 	dY = dDistance * (float) sin(mth);
+
+    #ifdef USE_AHRS_YAW_FOR_ODOM
+    dth = -(ahrs.yaw - prevYaw);
+    prevYaw = ahrs.yaw;
+    #else
 	dth = (float)(dREC - dLEC) * radiansPerCount;
+    #endif
+ 
 
 	//update measured x,y,theta
 	mx += dX;
