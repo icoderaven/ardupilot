@@ -32,49 +32,53 @@
 #define GO_FORWARD          0x02
 #define BRAKE_LOW_3         0x03
 
-class AP_PololuMotorsSerial
-{
+class AP_PololuMotorsSerial {
 public:
 
-    // Constructor, what is AHRS ??
-    AP_PololuMotorsSerial()
-        
-        {
-            //AP_Param::setup_object_defaults(this, var_info);
-        }
+	AP_PololuMotorsSerial()
 
-    // Initialisation
-    void        init();
-    void set_motors(unsigned int leftWheelDirection,unsigned int leftWheelVelocity,unsigned int rightWheelDirection,unsigned int     rightWheelVelocity);
-    void accelerate_motors(unsigned int leftWheelDirection,unsigned int leftWheelVelocity,unsigned int rightWheelDirection,unsigned int rightWheelVelocity);
-    void move_forward(unsigned int wheel,unsigned int velocity);
-    void move_reverse(unsigned int wheel,unsigned int velocity);
-    void brake(unsigned int wheel,unsigned int velocity);
-    void accelerate_forward(unsigned int wheel,unsigned int velocity);
+	{
+		//AP_Param::setup_object_defaults(this, var_info);
+		init();
+	}
 
-    void god_speed();
-    void set_target_velocity(unsigned int leftWheelDirection,unsigned int leftWheelVelocity,unsigned int rightWheelDirection,unsigned int     rightWheelVelocity);
-    bool _sem_take(uint8_t timeout);
-    void shut_down();
+	// Initialisation
+	void init();
+	void set_motors(unsigned int leftWheelDirection,
+			unsigned int leftWheelVelocity, unsigned int rightWheelDirection,
+			unsigned int rightWheelVelocity);
+	void accelerate_motors(unsigned int leftWheelDirection,
+			unsigned int leftWheelVelocity, unsigned int rightWheelDirection,
+			unsigned int rightWheelVelocity);
+	void move_forward(unsigned int wheel, unsigned int velocity);
+	void move_reverse(unsigned int wheel, unsigned int velocity);
+	void brake(unsigned int wheel, unsigned int velocity);
+	void accelerate_forward(unsigned int wheel, unsigned int velocity);
 
-private :
-    long prevLeftEncoderCount=0;
-    long prevRightEncoderCount=0;
-    unsigned long prevMillis=0;
-    long targetLeftVelocity=0;
-    long targetRightVelocity=0;
-    int targetLeftDirection=1;
-    int targetRightDirection=1;
+	void god_speed();
+	void set_target_velocity(unsigned int leftWheelDirection,
+			unsigned int leftWheelVelocity, unsigned int rightWheelDirection,
+			unsigned int rightWheelVelocity);
+	bool _sem_take(uint8_t timeout);
+	void shut_down();
 
-    //last velocity sent to motors
-    unsigned int driveLeft=0;
-    unsigned int driveRight=0;
+private:
+	long prevLeftEncoderCount;
+	long prevRightEncoderCount;
+	unsigned long prevMillis;
+	long targetLeftVelocity;
+	long targetRightVelocity;
+	int targetLeftDirection;
+	int targetRightDirection;
 
-    static AP_HAL_AVR::AVRSemaphore _motor_sem;
-    
-    float kp=64.0/7614.0;
-    bool running=false;
+	//last velocity sent to motors
+	unsigned int driveLeft;
+	unsigned int driveRight;
 
+	static AP_HAL_AVR::AVRSemaphore _motor_sem;
+
+	float kp;
+	bool running;
 
 };
 
