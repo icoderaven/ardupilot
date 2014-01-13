@@ -192,7 +192,7 @@ static void init_ardupilot()
     #endif
     // @Rover
     odometry->init();
-    hal.uartB->begin(19200, 128, 16);
+    hal.uartB->begin(38400, 128, 16);// [19200 : Pololu | 38400 : Roboclaw]
 
 	//mavlink_system.sysid = MAV_SYSTEM_ID;				// Using g.sysid_this_mav
 	mavlink_system.compid = 1;	//MAV_COMP_ID_IMU;   // We do not check for comp id

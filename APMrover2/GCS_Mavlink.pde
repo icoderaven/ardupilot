@@ -1,5 +1,6 @@
 // -*- tab-width: 4; Mode: C++; c-basic-offset: 4; indent-tabs-mode: nil -*-
-#include <AP_PololuMotorsSerial.h>
+//#include <AP_PololuMotorsSerial.h>
+#include <AP_Roboclaw.h>
 // use this to prevent recursion during sensor init
 static bool in_mavlink_delay;
 
@@ -1594,6 +1595,7 @@ void GCS_MAVLINK::handleMessage(mavlink_message_t* msg) {
 		if (vLeft > 127)
 			vLeft = 127;
 
+        /*
 		//Now assign the directions
 		unsigned int dR = BRAKE_LOW_3, dL = BRAKE_LOW_3; //Forward -> 2, Reverse ->1 , Brake ->3
 		if (vRight < 0)
@@ -1606,7 +1608,15 @@ void GCS_MAVLINK::handleMessage(mavlink_message_t* msg) {
 		else if (vLeft > 0)
 			dL = GO_FORWARD;
 
-		pololuMotors->set_motors(dL, fabs(vLeft), dR, fabs(vRight));
+		//pololuMotors->set_motors(dL, fabs(vLeft), dR, fabs(vRight));
+    
+        */
+
+        //For roboclaw speed is in units of encoder quadrature counts per second
+        // Max value defined is 17000, but DO NOT USE 17000 as it may damage the motors
+        // For running, use RANGE as +/- 12650 
+        roboclaw->SpeedM1M2(ADDRESS,vLeft,vRight);
+
 		last_command_time = millis();
 		break;
 	}

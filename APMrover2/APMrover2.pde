@@ -94,7 +94,8 @@ version 2.1 of the License, or (at your option) any later version.
 
 #include <AP_Declination.h> // ArduPilot Mega Declination Helper Library
 #include <AP_Odometry.h> // @Rover
-#include <AP_PololuMotorsSerial.h> // @Rover
+//#include <AP_PololuMotorsSerial.h> // @Rover
+#include <AP_Roboclaw.h>    //@Rover
 
 AP_HAL::BetterStream* cliSerial;
 
@@ -173,8 +174,11 @@ static GPS         *g_gps;
 static AP_Odometry _odometry;
 static AP_Odometry *odometry = &_odometry;
 
-static AP_PololuMotorsSerial _pololuMotors;
-static AP_PololuMotorsSerial *pololuMotors = &_pololuMotors;
+//static AP_PololuMotorsSerial _pololuMotors;
+//static AP_PololuMotorsSerial *pololuMotors = &_pololuMotors;
+
+static AP_Roboclaw _roboclaw;
+static AP_Roboclaw *roboclaw = &_roboclaw;
 
 volatile long pos0=0;
 volatile long pos1=0;
@@ -850,14 +854,15 @@ static void update_odometry(void){
 // @Rover
 static void motor_control(){
 
-    pololuMotors->god_speed();
+    //pololuMotors->god_speed();
 }
 
 static void motor_failsafe(void){
     if(millis() - last_command_time > 1000)
     {
         //Brake the motors
-        pololuMotors->shut_down();       
+        //pololuMotors->shut_down();
+        roboclaw->shut_down();       
     }
 }
 
