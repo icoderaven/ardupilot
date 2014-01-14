@@ -395,12 +395,13 @@ static void NOINLINE send_scaled_imu(mavlink_channel_t chan)
 			accel.x * 1000.0 / GRAVITY_MSS,
 			accel.y * 1000.0 / GRAVITY_MSS,
 			accel.z * 1000.0 / GRAVITY_MSS,
-			ahrs.roll,
-			ahrs.pitch,
-			ahrs.yaw,
-			omega.x,
-			omega.y,
-			omega.z);
+			//These values have to be multiplied since they are defined as integers :/
+			ahrs.roll * 1000.0,
+			ahrs.pitch * 1000.0,
+			ahrs.yaw * 1000.0,
+			omega.x * 1000.0,
+			omega.y * 1000.0,
+			omega.z * 1000.0);
 }
 
 static void NOINLINE send_raw_imu3(mavlink_channel_t chan)
