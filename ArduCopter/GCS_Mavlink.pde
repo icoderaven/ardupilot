@@ -235,9 +235,9 @@ static void NOINLINE send_location(mavlink_channel_t chan)
         fix_time,
         current_loc.lat,                // in 1E7 degrees
         current_loc.lng,                // in 1E7 degrees
-        g_gps->altitude_cm * 10,             // millimeters above sea level
-        (current_loc.alt - home.alt) * 10,           // millimeters above ground
-        g_gps->velocity_north() * 100,  // X speed cm/s (+ve North)
+        sonar_alt * 10,             // millimeters above sea level
+        (current_loc.alt) * 10,           // millimeters above ground
+        baro_alt*100,  // X speed cm/s (+ve North)
         g_gps->velocity_east()  * 100,  // Y speed cm/s (+ve East)
         g_gps->velocity_down()  * -100, // Z speed cm/s (+ve up)
         g_gps->ground_course_cd);          // course in 1/100 degree
