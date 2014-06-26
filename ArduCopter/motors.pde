@@ -23,8 +23,8 @@ static void arm_motors_check()
         allow_arming = true;
     }
 
-    // allow arming/disarming in Loiter and AltHold if landed
-    if (ap.land_complete && (control_mode == LOITER || control_mode == ALT_HOLD)) {
+    // allow arming/disarming in Loiter, ACRO_ALT_HOLD and AltHold if landed
+    if (ap.land_complete && (control_mode == LOITER || control_mode == ALT_HOLD || control_mode == ACRO_ALT_HOLD)) {
         allow_arming = true;
     }
 

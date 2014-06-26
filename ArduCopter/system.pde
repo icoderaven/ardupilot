@@ -478,6 +478,22 @@ static bool set_mode(uint8_t mode)
                 set_nav_mode(OF_LOITER_NAV);
             }
             break;
+		
+		case ACRO_ALT_HOLD:
+            success = true;
+            ap.manual_throttle = false;
+            ap.manual_attitude = true;
+            set_yaw_mode(ACRO_ALT_HOLD_YAW);
+            set_roll_pitch_mode(ACRO_ALT_HOLD_RP);
+            set_throttle_mode(ACRO_ALT_HOLD_THR);
+            set_nav_mode(ACRO_ALT_HOLD_NAV);
+            // reset acro axis targets to current attitude
+            if(g.axis_enabled){
+                roll_axis   = 0;
+                pitch_axis  = 0;
+                nav_yaw     = 0;
+            }
+            break;
 
         // THOR
         // These are the flight modes for Toy mode
@@ -661,6 +677,9 @@ print_flight_mode(AP_HAL::BetterStream *port, uint8_t mode)
         break;
     case OF_LOITER:
         port->print_P(PSTR("OF_LOITER"));
+        break;
+	case ACRO_ALT_HOLD:
+        port->print_P(PSTR("ACRO_ALT_HOLD"));
         break;
     case TOY_M:
         port->print_P(PSTR("TOY_M"));

@@ -585,6 +585,23 @@
  # define ACRO_THR           	    THROTTLE_MANUAL
 #endif
 
+// ACRO_ALT_HOLD
+#ifndef ACRO_ALT_HOLD_YAW
+ # define ACRO_ALT_HOLD_YAW   	    YAW_ACRO
+#endif
+
+#ifndef ACRO_ALT_HOLD_RP
+ # define ACRO_ALT_HOLD_RP    	    ROLL_PITCH_ACRO
+#endif
+
+#ifndef ACRO_ALT_HOLD_THR
+ # define ACRO_ALT_HOLD_THR    	    THROTTLE_HOLD
+#endif
+
+#ifndef ACRO_ALT_HOLD_NAV
+ # define ACRO_ALT_HOLD_NAV             NAV_NONE
+#endif
+
 // Alt Hold Mode
 #ifndef ALT_HOLD_YAW
  # define ALT_HOLD_YAW           	YAW_HOLD
@@ -745,6 +762,10 @@
  # define ACRO_P                 4.5f
 #endif
 
+#ifndef ACRO_ALT_HOLD_P
+ # define ACRO_ALT_HOL_P                 4.5f
+#endif
+
 #ifndef AXIS_LOCK_ENABLED
  # define AXIS_LOCK_ENABLED      ENABLED
 #endif
@@ -861,6 +882,18 @@
 
 #ifndef ACRO_TRAINER_ENABLED
  #define ACRO_TRAINER_ENABLED       ENABLED
+#endif
+
+#ifndef ACRO_ALT_HOLD_BALANCE_ROLL
+ #define ACRO_ALT_HOLD_BALANCE_ROLL			200
+#endif
+
+#ifndef ACRO_ALT_HOLD_BALANCE_PITCH
+ #define ACRO_ALT_HOLD_BALANCE_PITCH			200
+#endif
+
+#ifndef ACRO_ALT_HOLD_TRAINER_ENABLED
+ #define ACRO_ALT_HOLD_TRAINER_ENABLED       ENABLED
 #endif
 
 //////////////////////////////////////////////////////////////////////////////

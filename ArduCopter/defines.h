@@ -137,9 +137,11 @@
 #define LAND 9                          // AUTO control
 #define OF_LOITER 10                    // Hold a single location using optical flow
                                         // sensor
-#define TOY_A 11                        // THOR Enum for Toy mode
-#define TOY_M 12                        // THOR Enum for Toy mode
-#define NUM_MODES 13
+#define ACRO_ALT_HOLD 11                // ACRO rate controller with an altitude hold. (talha 6/26)               
+#define TOY_A 12                        // THOR Enum for Toy mode
+#define TOY_M 13                        // THOR Enum for Toy mode
+
+#define NUM_MODES 14
 
 // CH_6 Tuning
 // -----------
