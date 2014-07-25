@@ -248,9 +248,9 @@ static void NOINLINE send_odometry(mavlink_channel_t chan)
 			odometry->get_position_x(),
 			odometry->get_position_y(),
 			0,
-			0,//Roll
-			0,//Pitch
-			odometry->get_position_th());//Yaw
+			ahrs.roll * 1000.0, // Roll These values have to be multiplied by 1000 since these are integers
+			ahrs.pitch * 1000.0, // Pitch
+			ahrs.yaw * 1000.0); // Yaw
 }
 
 static void NOINLINE send_nav_controller_output(mavlink_channel_t chan)
